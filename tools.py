@@ -53,9 +53,9 @@ def eta(_omega, detuning, _phi, _kappa):
                   
 # mechanical 
 def mu(_omega, _omega_j, _Gamma):
-    mu1 = chi(_omega, _omega_j[0], _Gamma) - np.conj(chi(-_omega, _omega_j[0], _Gamma))
-    mu2 = chi(_omega, _omega_j[1], _Gamma) - np.conj(chi(-_omega, _omega_j[1], _Gamma))
-    mu3 = chi(_omega, _omega_j[2], _Gamma) - np.conj(chi(-_omega, _omega_j[2], _Gamma))
+    mu1 = chi(_omega, _omega_j[0], _Gamma[0]) - np.conj(chi(-_omega, _omega_j[0], _Gamma[0]))
+    mu2 = chi(_omega, _omega_j[1], _Gamma[1]) - np.conj(chi(-_omega, _omega_j[1], _Gamma[1]))
+    mu3 = chi(_omega, _omega_j[2], _Gamma[2]) - np.conj(chi(-_omega, _omega_j[2], _Gamma[2]))
     return [mu1, mu2, mu3]
 
 ### NOISES ###
@@ -70,16 +70,16 @@ def Q_opt(_omega, _detuning, _kappa, _phi):
 
 # mechanical
 def Q_mech(_omega, _omega_j, _Gamma, _phi):
-    Q1 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[0], _Gamma),b1_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[0], _Gamma)),b1_in_d(_omega))
-    Q2 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[1], _Gamma),b2_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[1], _Gamma)),b2_in_d(_omega))
-    Q3 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[2], _Gamma),b3_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[2], _Gamma)),b3_in_d(_omega))
+    Q1 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[0], _Gamma[0]),b1_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[0], _Gamma[0])),b1_in_d(_omega))
+    Q2 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[1], _Gamma[1]),b2_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[1], _Gamma[1])),b2_in_d(_omega))
+    Q3 = np.einsum('i, ji-> ji', chi(_omega, _omega_j[2], _Gamma[2]),b3_in(_omega)) + np.einsum('i,ji -> ji',np.conj(chi(-_omega, _omega_j[2], _Gamma[2])),b3_in_d(_omega))
     return [Q1, Q2, Q3]
 
 ### normalization factor
 def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
     M1 = 1+ _g[0]**2 *mu(_omega, _omega_j, _Gamma)[0]*eta(_omega, _detuning, _phi[0], _kappa)
-    M2 = 1+ _g[1]**2 *mu(_omega, _omega_j, _Gamma)[1]*eta(_omega, _detuning, _phi[0], _kappa)
-    M3 = 1+ _g[2]**2 *mu(_omega, _omega_j, _Gamma)[2]*eta(_omega, _detuning, _phi[0], _kappa)
+    M2 = 1+ _g[1]**2 *mu(_omega, _omega_j, _Gamma)[1]*eta(_omega, _detuning, _phi[1], _kappa)
+    M3 = 1+ _g[2]**2 *mu(_omega, _omega_j, _Gamma)[2]*eta(_omega, _detuning, _phi[2], _kappa)
     return [M1, M2, M3]
 
 ### displacement operator
@@ -88,15 +88,16 @@ def q(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma, _phi)
     _mu = mu(_omega, _omega_j, _Gamma)
     
-    q1 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, j->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
-    q2 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, j->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
-    q3 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, j->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
+    q1 = np.sqrt(_Gamma[0])*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, j->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
+    q2 = np.sqrt(_Gamma[1])*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, j->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
+    q3 = np.sqrt(_Gamma[2])*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, j->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
+
     
     return [q1, q2, q3]
     
 ### helper
 def expectation_value(_operator, _n, _pair):
-    return _n* (np.abs(_operator[_pair])**2 + np.conj(_operator[_pair])*_operator[_pair+1]) + (_n+1)* ( np.abs(_operator[_pair+1])**2 + _operator[_pair]*np.conj(_operator[_pair+1]))
+    return _n* np.abs(_operator[_pair])**2 + (_n+1)* np.abs(_operator[_pair+1])**2
 
 def spectrum_2(_operator, _n_opt, _n_mech):
     s_a = expectation_value(_operator, _n_opt, 0)
@@ -120,8 +121,13 @@ def spectrum_output(_i, param):
     n_opt = param[6]
     n_mech = param[7]
     
+    #print(param[4])
+    
+    
     # calculate q operator
     operator = q(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
     
     _spectrum = spectrum_2(operator, n_opt, n_mech)
     return g[_i]**2 * np.abs(eta(omega, detuning, _phi[_i], kappa))**2 * _spectrum
+
+
