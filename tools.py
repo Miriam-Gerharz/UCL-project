@@ -39,9 +39,9 @@ def eta(_omega, _detuning, _phi, _kappa):
                   
 # mechanical 
 def mu(_omega, _omega_j, _Gamma):
-    mu1 = chi(_omega, _omega_j[0], _Gamma[0]) - np.conj(chi(-_omega, _omega_j[0], _Gamma[0]))
-    mu2 = chi(_omega, _omega_j[1], _Gamma[1]) - np.conj(chi(-_omega, _omega_j[1], _Gamma[1]))
-    mu3 = chi(_omega, _omega_j[2], _Gamma[2]) - np.conj(chi(-_omega, _omega_j[2], _Gamma[2]))
+    mu1 = chi(_omega, _omega_j[0], _Gamma) - np.conj(chi(-_omega, _omega_j[0], _Gamma))
+    mu2 = chi(_omega, _omega_j[1], _Gamma) - np.conj(chi(-_omega, _omega_j[1], _Gamma))
+    mu3 = chi(_omega, _omega_j[2], _Gamma) - np.conj(chi(-_omega, _omega_j[2], _Gamma))
     return [mu1, mu2, mu3]
     
 ### NOISES ###
@@ -51,9 +51,9 @@ def Q_opt(_omega, _detuning, _kappa, _phi):
 
 # mechanical
 def Q_mech(_omega, _omega_j, _Gamma):
-    Q1 = np.einsum('i, j-> ji', chi(_omega, _omega_j[0], _Gamma[0]),b1_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[0], _Gamma[0])),b1_in_d)
-    Q2 = np.einsum('i, j-> ji', chi(_omega, _omega_j[1], _Gamma[1]),b2_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[1], _Gamma[1])),b2_in_d)
-    Q3 = np.einsum('i, j-> ji', chi(_omega, _omega_j[2], _Gamma[2]),b3_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[2], _Gamma[2])),b3_in_d)
+    Q1 = np.einsum('i, j-> ji', chi(_omega, _omega_j[0], _Gamma),b1_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[0], _Gamma)),b1_in_d)
+    Q2 = np.einsum('i, j-> ji', chi(_omega, _omega_j[1], _Gamma),b2_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[1], _Gamma)),b2_in_d)
+    Q3 = np.einsum('i, j-> ji', chi(_omega, _omega_j[2], _Gamma),b3_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[2], _Gamma)),b3_in_d)
     return [Q1, Q2, Q3]
     #return [Q1]
 
@@ -70,9 +70,9 @@ def q(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
     
-    q1 = np.sqrt(_Gamma[0])*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
-    q2 = np.sqrt(_Gamma[1])*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
-    q3 = np.sqrt(_Gamma[2])*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
+    q1 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
+    q2 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
+    q3 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
 
     return [q1, q2, q3]
     
@@ -139,10 +139,12 @@ def n_from_area(_S_plus, _S_minus, _Delta, _N, _name):
     return [N_X_plus, N_X_minus, N_X]
 
 def opt_damp_rate(_kappa, _detuning, _g, _omega_j):
-    Gamma_opt = -_g**2 * _kappa * (1/(_kappa**2/4 + (_detuning+_omega_j)**2) - 1/(_kappa**2/4 + (_detuning-_omega_j)**2) )  
+    Det2pi = _detuning * 2*np.pi
+    g_1D = np.array([_g[0], _g[1], _g[2]])
+    Gamma_opt = -g_1D**2 * _kappa * (1/(_kappa**2/4 + (Det2pi+_omega_j)**2) - 1/(_kappa**2/4 + (Det2pi-_omega_j)**2) )  
 
     print()
-    print('optical damping rates')
+    print('optical cooling rates')
     print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 3), '1e5')
     print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 3), '1e5')
     print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 3), '1e5')
@@ -153,8 +155,8 @@ def opt_damp_rate(_kappa, _detuning, _g, _omega_j):
     return Gamma_opt
 
 
-def photon_number(_n_j, _Gamma_opt, _Gamma_j):
-    N = _n_j * _Gamma_j / (abs(_Gamma_opt) + 2*_Gamma_j)
+def photon_number(_n_j, _Gamma_opt, _Gamma):
+    N = 2*_n_j * _Gamma / (abs(_Gamma_opt) + 2*_Gamma)
     
     print()
     print('theoretical photon numbers at equiv')
