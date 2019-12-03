@@ -65,7 +65,7 @@ def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
     return [M1, M2, M3]
 
 ### displacement operator
-def q(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
+def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
@@ -75,6 +75,46 @@ def q(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     q3 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
 
     return [q1, q2, q3]
+
+def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
+    _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
+    #_Q_mech = Q_mech(_omega, _omega_j, _Gamma)
+    _mu = mu(_omega, _omega_j, _Gamma)
+    q = q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi)
+    
+    # coupling terms
+    GXY = 1j*eta(_omega, _detuning, 0, _kappa)*_g[0]*_g[1] + _g[3]
+    GYX = GXY
+    GYZ = -1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[1]*_g[2] + _g[4]
+    #GYZ = 1j*eta(_omega, _detuning, -np.pi/2, _kappa)*_g[1]*_g[2] + _g[4]
+    GZY = 1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[2]*_g[1] + _g[4]
+    GXZ = -1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[0]*_g[2] + _g[5]
+    #GXZ = 1j*eta(_omega, _detuning, -np.pi/2, _kappa)*_g[0]*_g[2] + _g[5]
+    GZX = 1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[2]*_g[0] + _g[5]
+    
+    
+    RXY = 1j * _mu[0] * GXY / _M[0]
+    RYX = 1j * _mu[1] * GYX / _M[1]
+    RXZ = 1j * _mu[0] * GXZ / _M[0]
+    RZX = 1j * _mu[2] * GZX / _M[2]
+    RYZ = 1j * _mu[1] * GYZ / _M[1]
+    RZY = 1j * _mu[2] * GZY / _M[2]
+    
+    #q1 = q[0] + 1j*_mu[1]*GXY*q[1]/_M[1] + 1j*_mu[2]*GXZ*q[2]/_M[2]
+    #q2 = q[1] + 1j*_mu[0]*GYX*q[0]/_M[0] + 1j*_mu[2]*GYZ*q[2]/_M[2]
+    #q3 = q[2] + 1j*_mu[0]*GZX*q[0]/_M[0] + 1j*_mu[1]*GZY*q[1]/_M[1]
+    
+    #q1 = q[0] + RYZ * q[2] + RZY * q[1]
+    #q2 = q[1] + RXZ * q[2] + RZX * q[0]
+    #q3 = q[2] + RXY * q[1] + RYX * q[0]
+    
+    q1 = q[0] + RXY * q[1] + RXZ * q[2]
+    q2 = q[1] + RYX * q[0] + RYZ * q[2]
+    q3 = q[2] + RZX * q[0] + RZY * q[1]
+    
+    return [q1, q2, q3]
+
+
     
 ### helper
 def expectation_value(_operator, _n, _pair):
@@ -88,9 +128,10 @@ def spectrum(_operator, _n_opt, _n_mech):
     return s_a + s_b1 + s_b2 + s_b3
 
 
-def spectrum_output(omega, _i, param):
+def spectrum_output(omega, _i, param, ThreeD):
     # define phases
     _phi = np.array([0,0,np.pi/2])
+    #_phi = np.array([0,0,0])
     
     # unpack parameters
     omega_j = param[0]
@@ -102,8 +143,10 @@ def spectrum_output(omega, _i, param):
     n_mech = param[6]
     
     # calculate q operator
-    operator = q(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
-    
+    if ThreeD == False:
+        operator = q_1D(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
+    if ThreeD == True:
+        operator = q_3D(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
     # calculate spectrum
     _spectrum = spectrum(operator, n_opt, n_mech)
     
