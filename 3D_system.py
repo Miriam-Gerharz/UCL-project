@@ -31,15 +31,15 @@ Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
 
 omega = np.arange(0, 300, 0.5e-2)*1e3*2*np.pi # freq for spectrum
 
-settings = 'Tania'
-#settings = 'Delic'
+#settings = 'Tania'
+settings = 'Delic'
 
 ### setiings Tania ###
 if settings == 'Tania':
     T = 300 #temperatur [K]
     R0=100e-9 #sphere radius
     RHO=2198 #sphere density
-    EPSR=2.1
+    EPSR=2.1 #parameter used to obtain the refractive index
     #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
     lambda_tw = 1064e-9 # wavelength [m]   
     WK=5.9e6 #=2*pi/lambda=k
@@ -51,14 +51,14 @@ if settings == 'Tania':
     Press=1e-6 #air pressure in millibars
     Pin1=0.17e0 #input power in Watts tweezer beam
     detuning=-300e3 #detuning in KHz trap beam
-    DelFSR=14e9 #1 FSR= 14 GHz
+    DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
     theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
     
     # Equilibrium positions 
     # X0=0.125*lambda ,Y0=waist/sqrt(2)
     Y0=0.0e-6
     #X0=0.125*1.064e-6
-    X0=0.1*1.064e-6
+    X0=0.23*1.064e-6
     Z0=0e-6
     
     
@@ -72,34 +72,40 @@ if settings == 'Tania':
 ### setiings Delic ###
 if settings == 'Delic':
     T = 300 #temperatur [K]
-    R0= 143e-9/2#sphere radius [m]
+    R0= 0.5*143e-9#sphere radius [m]
     RHO= 2198 #sphere density [kg m^-3]
-#    EPSR=
+    EPSR= 2.1  #parameter used to obtain the refractive index
+#    EPSR= 1.5  #parameter used to obtain the refractive index
     #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
     lambda_tw = 1064e-9 # wavelength [m]
     WK= 2*np.pi / lambda_tw#=2*pi/lambda=k
-#    waist= #waist radius
-    WX= 0.67e-6 # waist size [m]
-    WY= 0.11e-6 # waist size [m]
+    waist=41.1e-6  #waist radius of cavity mode
+    WX= 0.67e-6 # waist size of tweezer [m]
+    WY= 0.77e-6 # waist size of tweezer [m]
     XL=  1.07e-2 #cavity length [m]
     Finesse = 73e3
+    #Finesse = 15e4
     Press=1e-6 #air pressure in millibars
     Pin1= 400e-3 #input power in Watts tweezer beam
-    detuning=-300e3 #detuning in KHz trap beam (omega_cav - omega_tw)
-#    DelFSR= #1 FSR= 14 GHz
-#    theta0= #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+    #Pin1= 0.17 #input power in Watts tweezer beam
+    detuning=-580e3 #detuning in KHz trap beam (omega_cav - omega_tw)
+#    detuning=-380e3 #detuning in KHz trap beam (omega_cav - omega_tw)
+#    detuning=-315e3 #detuning in KHz trap beam (omega_cav - omega_tw)
+    DelFSR= 14e9 # 1FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
+    theta0= 0.25#angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
     
     # Equilibrium positions 
     # X0=0.125*lambda ,Y0=waist/sqrt(2)
     Y0=0.0e-6
     #X0=0.125*1.064e-6
-    X0=0.25*1064e-9 + 3e-9 #x position [m]
+#    X0=0.25*1064e-9 + 3e-9 #x position [m]
+#    X0 = 0.23 * 1064e-9
+    X0 = 0.05*1064e-9
     Z0=0e-6
     
-    filename = 'pic/3D_setup_Delic_det_'+str(round(detuning*1e-3))+'kHz'
+    filename = 'pic/3D_setup_Delic_det_'+str(round(detuning*1e-3))+'kHz_' + str(round(X0/1064e-9*1e2)) + 'pi'
 
 ###############################################################
-
 
 
 
@@ -131,7 +137,7 @@ def print_parameter(param):
 XM=RHO*4.*np.pi/3.*R0**3
 print('Mass of bead= (Kg)', XM)
 
-Polaris=4.*np.pi*Epsi0*(EPSR-1)/(EPSR+2)*R0**3
+Polaris=4.*np.pi*Epsi0*(EPSR-1)/(EPSR+2)*R0**3 # from Tania
 print('Polarisability of bead=', Polaris)
 
 OMOPT=c*WK
@@ -222,9 +228,9 @@ OmY=OmY+C1*np.cos(thet)*np.cos(thet)
 OmZ=OmZ-2.*Edip/XM*ALPRe*(WK-1/ZR)**2*np.cos(Wkx0)
 
 omega_j = np.array([np.sqrt(OmX), np.sqrt(OmY), np.sqrt(OmZ)])
-print('mech freq Omx/2pi=',omega_j[0]/2/np.pi)
-print('mech freq Omy/2pi=',omega_j[1]/2/np.pi)
-print('mech freq Omz/2pi=',omega_j[2]/2/np.pi)
+print('mech freq Omx/2pi=',omega_j[0]/2/np.pi,omega_j[0]/2/np.pi / 305e3)
+print('mech freq Omy/2pi=',omega_j[1]/2/np.pi,omega_j[1]/2/np.pi / 275e3)
+print('mech freq Omz/2pi=',omega_j[2]/2/np.pi,omega_j[2]/2/np.pi / 80e3)
 
 #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
     
@@ -294,6 +300,8 @@ SZZ_minus_3D = tools.spectrum_output(-omega, 2, param, True)
 # plotting
 plt.plot(omega/2/np.pi*1e-3, SXX_plus_3D, color = 'red', label = 'x 3D', linestyle = '-')
 plt.plot(-omega/2/np.pi*1e-3, SXX_minus_3D, color = 'red', linestyle = '-')
+plt.plot(omega/2/np.pi*1e-3, SYY_plus_3D, color = 'blue', label = 'x 3D', linestyle = '-')
+plt.plot(-omega/2/np.pi*1e-3, SYY_minus_3D, color = 'blue', linestyle = '-')
 
 #plt.plot(-omega/2/np.pi*1e-3, SZZ_minus, color = 'lawngreen', linestyle = '--')
 plt.plot(omega/2/np.pi*1e-3, SXX_plus, color = 'orange', label = 'x 1D', linestyle = '--')
@@ -327,18 +335,18 @@ f = open(filename+'_parameters', 'w')
 f.write('T ' + str(T) + ' #temperatur [K] \n')
 f.write('R0 ' + str(R0) + ' #sphere radius [m] \n')
 f.write('RHO ' + str(RHO) + ' #sphere density [kg m^-3] \n')
-f.write('EPSR ' + str(EPSR) + '# ??? \n' )
+f.write('EPSR ' + str(EPSR) + '# #parameter used to obtain the refractive index \n' )
 f.write('lambda_tw ' + str(lambda_tw) + ' # wavelength [m] \n')
 f.write('WK ' + str(WK) + ' #=2*pi/lambda=k \n')
-f.write('waist ' + str(waist) + ' #waist radius \n')
-f.write('WX ' + str(WX) + ' #waist size [m] \n')
-f.write('WY ' + str(WY) + '# waist size [m] \n')
+f.write('waist ' + str(waist) + ' #waist radius of cavity mode [m] \n')
+f.write('WX ' + str(WX) + ' #waist size of tweezer [m] \n')
+f.write('WY ' + str(WY) + '# waist size of tweezer [m] \n')
 f.write('XL ' + str(XL) + ' #cavity length [m] \n')
 f.write('Finesse ' + str(Finesse) +' \n')
-f.write('Press ' + str(Press) + ' #air pressure in millibars \n')
-f.write('Pin1 ' + str(Pin1) + ' #input power in Watts tweezer beam \n')
-f.write('detuning ' + str(detuning) + ' #detuning in KHz trap beam (omega_cav - omega_tw) \n')
-f.write('DelFSR ' + str(DelFSR) + ' #1 FSR= 14 GHz \n')
+f.write('Press ' + str(Press) + ' #air pressure [mbar] \n')
+f.write('Pin1 ' + str(Pin1) + ' #input power tweezer beam [W] \n')
+f.write('detuning ' + str(detuning) + ' #detuning of trap beam (omega_cav - omega_tw) [kHz] \n')
+f.write('DelFSR ' + str(DelFSR) + ' #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you dont use these if you input g_x \n')
 f.write('theta0 ' + str(theta0) + ' #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25 \n')
 f.write('Y0 ' + str(Y0) + ' #y position [m] \n')
 f.write('X0 ' + str(X0) + ' #x position [m] \n')
