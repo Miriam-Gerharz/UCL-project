@@ -100,13 +100,12 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     RYZ = 1j * _mu[1] * GYZ / _M[1]
     RZY = 1j * _mu[2] * GZY / _M[2]
     
-    #q1 = q[0] + 1j*_mu[1]*GXY*q[1]/_M[1] + 1j*_mu[2]*GXZ*q[2]/_M[2]
-    #q2 = q[1] + 1j*_mu[0]*GYX*q[0]/_M[0] + 1j*_mu[2]*GYZ*q[2]/_M[2]
-    #q3 = q[2] + 1j*_mu[0]*GZX*q[0]/_M[0] + 1j*_mu[1]*GZY*q[1]/_M[1]
+    # set coupling to z mode to 0
+    #RXZ = 0
+    #RZX = 0
+    #RYZ = 0
+    #RZY = 0
     
-    #q1 = q[0] + RYZ * q[2] + RZY * q[1]
-    #q2 = q[1] + RXZ * q[2] + RZX * q[0]
-    #q3 = q[2] + RXY * q[1] + RYX * q[0]
     
     q1 = q[0] + RXY * q[1] + RXZ * q[2]
     q2 = q[1] + RYX * q[0] + RYZ * q[2]
@@ -203,13 +202,13 @@ def photon_number(_n_j, _Gamma_opt, _Gamma):
     
     print()
     print('theoretical photon numbers at equiv')
-    print('n_x theo: ', round(N[0], 3))
-    print('n_y theo: ', round(N[1], 3))
-    print('n_z theo: ', round(N[2], 3))
+    print('n_x theo: ', round(N[0], 4))
+    print('n_y theo: ', round(N[1], 4))
+    print('n_z theo: ', round(N[2], 4))
     
     print('theoretical photon numbers at room temperature')
-    print('n_x theo: ', round(_n_j[0]/1e8, 3), '1e8')
-    print('n_y theo: ', round(_n_j[1]/1e8, 3), '1e8')
-    print('n_z theo: ', round(_n_j[2]/1e8, 3), '1e8')
+    print('n_x theo: ', round(_n_j[0]/1e8, 4), '1e8')
+    print('n_y theo: ', round(_n_j[1]/1e8, 4), '1e8')
+    print('n_z theo: ', round(_n_j[2]/1e8, 4), '1e8')
     
     return N

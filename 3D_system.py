@@ -31,8 +31,8 @@ Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
 
 omega = np.arange(0, 300, 0.5e-2)*1e3*2*np.pi # freq for spectrum
 
-#settings = 'Tania'
-settings = 'Delic'
+settings = 'Tania'
+#settings = 'Delic'
 
 ### setiings Tania ###
 if settings == 'Tania':
@@ -58,13 +58,13 @@ if settings == 'Tania':
     # X0=0.125*lambda ,Y0=waist/sqrt(2)
     Y0=0.0e-6
     #X0=0.125*1.064e-6
-    X0=0.23*1.064e-6
+    X0=0.73*1.064e-6
     Z0=0e-6
     
     
-    filename = 'pic/3D_setup_Tania_det_'+str(round(detuning*1e-3))+'kHz'
+    filename = 'pic/3D/3D_setup_Tania_det_'+str(round(detuning*1e-3))+'kHz' + str(round(X0/1064e-9*1e2)) + 'pi'
 
-    filename = 'pic/3D_setup_Tania_1'
+    #filename = 'pic/3D_setup_Tania_1'
 
 
 
@@ -80,7 +80,7 @@ if settings == 'Delic':
     lambda_tw = 1064e-9 # wavelength [m]
     WK= 2*np.pi / lambda_tw#=2*pi/lambda=k
     waist=41.1e-6  #waist radius of cavity mode
-    WX= 0.67e-6 # waist size of tweezer [m]
+    WX= 0.67e-6# waist size of tweezer [m]
     WY= 0.77e-6 # waist size of tweezer [m]
     XL=  1.07e-2 #cavity length [m]
     Finesse = 73e3
@@ -99,11 +99,11 @@ if settings == 'Delic':
     Y0=0.0e-6
     #X0=0.125*1.064e-6
 #    X0=0.25*1064e-9 + 3e-9 #x position [m]
-#    X0 = 0.23 * 1064e-9
-    X0 = 0.05*1064e-9
+    X0 = 0.23 * 1064e-9
+#    X0 = 0.05*1064e-9
     Z0=0e-6
     
-    filename = 'pic/3D_setup_Delic_det_'+str(round(detuning*1e-3))+'kHz_' + str(round(X0/1064e-9*1e2)) + 'pi'
+    filename = 'pic/3D/3D_setup_Delic_det_'+str(round(detuning*1e-3))+'kHz_' + str(round(X0/1064e-9*1e2)) 
 
 ###############################################################
 
@@ -270,6 +270,7 @@ def calculate_couplings():
 
 # calculate coupling 
 g = calculate_couplings()
+
     
 # optical damping rates
 Gamma_opt = tools.opt_damp_rate(kappa, detuning, g, omega_j)
@@ -315,20 +316,25 @@ plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'cyan', linestyle = '--')
 #plt.plot(-omega/2/np.pi*1e-3, SZZ_minus_3D, color = 'lawngreen', linestyle = '-')
 
 plt.xlabel('$\omega/(2\pi)$ [Hz]')
-plt.ylabel('$S_{ii}$ [a.u.]')
+plt.ylabel('$S_{qq}$ [a.u.]')
 plt.yscale('log')
-plt.title('3D calculation for $\phi=$'+str(round(Wkx0/2/np.pi,2))+'$\pi$')
+#plt.title('3D calculation for $\phi=$'+str(round(Wkx0/2/np.pi,2))+'$\pi$')
 plt.legend(loc = 'best')
-plt.savefig(filename)
+plt.savefig(filename, bbox_inches='tight')
 plt.show()
 
 
 # calculate photon numbers from area
 Delta = np.abs(omega[1])-np.abs(omega[0])
+print('***1D spectra***')
 NX_from_area = tools.n_from_area(SXX_plus, SXX_minus, Delta, N[0], 'X')
 NY_from_area = tools.n_from_area(SYY_plus, SYY_minus, Delta, N[1], 'Y')
 NZ_from_area = tools.n_from_area(SZZ_plus, SZZ_minus, Delta, N[2], 'Z')
 
+print('\n ***3D spectra (ignore difference)***')
+NX_from_area_3D = tools.n_from_area(SXX_plus_3D, SXX_minus_3D, Delta, N[0], 'X')
+NY_from_area_3D = tools.n_from_area(SYY_plus_3D, SYY_minus_3D, Delta, N[1], 'Y')
+NZ_from_area_3D = tools.n_from_area(SZZ_plus_3D, SZZ_minus_3D, Delta, N[2], 'Z')
 
 # save settings
 f = open(filename+'_parameters', 'w')
