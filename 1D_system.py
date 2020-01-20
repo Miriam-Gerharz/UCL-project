@@ -16,6 +16,7 @@ import tools
 #################
 
 k = 1.380649e-23 #J/K
+k = 1.4e-23
 hbar = 1.054571817e-34 #Js
 hbar = 1.05e-34 #Js
 c = 3e8 #m/s
@@ -26,72 +27,36 @@ grav = 9.8 #m/s^2
 ### PARAMETERS ###
 ##################
 
-'''
-# particle properties
-rho = 1
-R0 = 1
+param = tools.parameters()
 
-# temperature 
-T = 300 #K
+#####################################
 
-# frequencies
-omega = np.arange(0, 200, 1e-2)*1e3*2*np.pi # freq for spectrum
-omega_j = np.array([174260, 157e3, 78e3])*2*np.pi # freq of mechanical modes
-detuning = -300e3 * 2*np.pi #Hz
+omega = np.arange(0, 300, 1e-2)*1e3*2*np.pi # freq for spectrum
 
-# damping
-Gamma = 0.2317e-2*np.array([1, 1, 1])*2 # mechanical damping
-kappa = 2*np.pi*93458 #Hz
-
-# coupling
-g = np.array([-25412,-39e3,57e3]) *2*np.pi # Hz ????
-
-# phases
-phi = np.array([0,0,np.pi])
-#############################################################################
-
-### resulting variables ###
-n_opt = 0
-n_mech = k*T/(hbar * omega_j)
-
-XM = rho*4.*np.pi/3.*R0**3 #mass
-
-print('particle properties:')
-print('mass [kg]:', XM)
-
-#############################################################################
-'''
-#############################################################
-
-
-omega = np.arange(0, 200, 1e-2)*1e3*2*np.pi # freq for spectrum
-
-T = 300 #temperatur [K]
-NPERIOD=160000 #NPERIOD=NOT RELEVANT TO ANALYTICAL CODE: ignore
-NTOT=8 #NTOT=number of equations so 8=>1 optical mode +3D
-R0=100e-9 #sphere radius
-RHO=2198 #sphere density
-EPSR=2.1
-Epsi0=8.854e-12
+param.T = 300 #temperatur [K]
+param.R0=100e-9 #sphere radius
+param.RHO=2198 #sphere density
+param.EPSR=2.1 #parameter used to obtain the refractive index
 #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
-WK=5.9e6 #=2*pi/lambda=k
-waist=41.1e-6 #waist radius
-WX=0.67e-6
-WY=0.77e-6
-XL=1.07e-2 #cavity length 
-Finesse=15e4
-Press=1e-6 #air pressure in millibars
-Pin1=0.17e0 #input power in Watts tweezer beam
-detuning=-300e3 #detuning in KHz trap beam
-DelFSR=14e9 #1 FSR= 14 GHz
-theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+param.lambda_tw = 1064e-9 # wavelength [m]   
+#WK=5.9e6 #=2*pi/lambda=k
+param.waist=41.1e-6 #waist radius
+param.WX=0.67e-6
+param.WY=0.77e-6
+param.XL=1.07e-2 #cavity length 
+param.Finesse=15e4
+param.Press=1e-6 #air pressure in millibars
+param.Pin1=0.17e0 #input power in Watts tweezer beam
+param.detuning=-300e3 #detuning in KHz trap beam
+param.DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
+param.theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
 
 # Equilibrium positions 
 # X0=0.125*lambda ,Y0=waist/sqrt(2)
-Y0=0.0e-6
-X0=0.125*1.064e-6
-Z0=0e-6
-
+param.Y0=0.0e-6
+#X0=0.125*1.064e-6
+param.X0=0.73*1.064e-6
+param.Z0=0e-6
 
 
 ###############################################################
@@ -121,7 +86,8 @@ def print_parameter(param):
 ############################
 ### PREPARE CALCULATIONS ###
 ############################                
-        
+      
+'''    
 # zero eq. initial values
 XM=RHO*4.*np.pi/3.*R0**3
 print('Mass of bead= (Kg)', XM)
@@ -170,7 +136,7 @@ GAMMAM=GAMMAM/500/RHO/R0
 Gamma=GAMMAM/2
 print('mechanical damping* 2pi', Gamma)
 
-
+print('theta [pi]', theta0)
 #*************************************************************************
 #*************************************************************************
 # subroutine below obtains the optomechanical parameters
@@ -200,7 +166,6 @@ thet = theta0 * np.pi
 
 # Sept 5 we will use negative Edip
 Edip=-0.5*Polaris*epsTW*epsCAV*np.sin(thet)
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Ediph=Edip/hbar
 print('Edip/2/pi/hbar=', Ediph/2/np.pi)
 # photon number in cavity
@@ -211,7 +176,7 @@ Nphoton=Ediph*Ediph*np.cos(Wkx0)*np.cos(Wkx0)
 Nphoton=Nphoton/(kapp2**2+Det2pi**2)
 print('delta,kappa/2,number of photons in cavity', Det2pi/2/np.pi,kapp2/2/np.pi,Nphoton)
 
-#!!!!!!!!!ADD CAVITY CORRECTION to frequency squared!!!!!!!!!!!!!!
+### ADD CAVITY CORRECTION to frequency squared ###
 C1=-Edip/XM*2.*ALPRe*WK**2*np.cos(Wkx0)
 OmX=OmX+C1*np.sin(thet)*np.sin(thet)
 OmY=OmY+C1*np.cos(thet)*np.cos(thet)
@@ -259,33 +224,37 @@ def calculate_couplings():
 
 # calculate coupling 
 g = calculate_couplings()
+'''
+
+param.prepare_calc()
     
 # optical damping rates
-Gamma_opt = tools.opt_damp_rate(kappa, detuning, g, omega_j)
+Gamma_opt = param.opt_damp_rate()
 
 # photon numbers at equiv
-N = tools.photon_number(n_mech, Gamma_opt, Gamma)
+N = tools.photon_number(param.n_mech, Gamma_opt, param.Gamma)
 
 
-param = (omega_j, detuning, g, Gamma, kappa, n_opt, n_mech)
+#param = (param.omega_mech, param.detuning, param.g, param.Gamma, param.kappa, param.n_opt, param.n_mech)
 #print_parameter(param)
     
-SXX_plus = tools.spectrum_output(omega, 0, param)
-SXX_minus = tools.spectrum_output(-omega, 0, param)
-SYY_plus = tools.spectrum_output(omega, 1, param)
-SYY_minus = tools.spectrum_output(-omega, 1, param)
-SZZ_plus = tools.spectrum_output(omega, 2, param)
-SZZ_minus = tools.spectrum_output(-omega, 2, param)
+SXX_plus = tools.spectrum_output(omega, 0, param, False)
+SXX_minus = tools.spectrum_output(-omega, 0, param, False)
+SYY_plus = tools.spectrum_output(omega, 1, param, False)
+SYY_minus = tools.spectrum_output(-omega, 1, param, False)
+SZZ_plus = tools.spectrum_output(omega, 2, param, False)
+SZZ_minus = tools.spectrum_output(-omega, 2, param, False)
 
 plt.plot(omega/2/np.pi*1e-3, SXX_plus, color = 'red', label = 'x')
-plt.plot(-omega/2/np.pi*1e-3, SXX_minus, color = 'orange')
+plt.plot(-omega/2/np.pi*1e-3, SXX_minus, color = 'red')
 plt.plot(omega/2/np.pi*1e-3, SYY_plus, color = 'blue', label = 'y')
-plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'cyan')
-plt.plot(omega/2/np.pi*1e-3, SZZ_plus, color = 'green', label = 'z')
+plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'blue')
+plt.plot(omega/2/np.pi*1e-3, SZZ_plus, color = 'lawngreen', label = 'z')
 plt.plot(-omega/2/np.pi*1e-3, SZZ_minus, color = 'lawngreen')
 
 plt.xlabel('$\omega/(2\pi)$ [Hz]')
 plt.ylabel('$S_{ii}$ [a.u.]')
+plt.yscale('log')
 plt.legend(loc = 'best')
 plt.savefig('pic/spectrum_1D_calc')
 plt.show()

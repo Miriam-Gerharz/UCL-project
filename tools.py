@@ -1,4 +1,5 @@
 import numpy as np
+import inspect
 
 
 '''
@@ -7,6 +8,15 @@ index i: function of omega
 index j: different operators
 
 '''
+
+
+k = 1.380649e-23 #J/K
+hbar = 1.054571817e-34 #Js
+hbar = 1.05e-34 #Js
+c = 3e8 #m/s
+grav = 9.8 #m/s^2
+Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
+ 
 
 
 ### operators (only 1D by now)
@@ -130,24 +140,16 @@ def spectrum(_operator, _n_opt, _n_mech):
 def spectrum_output(omega, _i, param, ThreeD):
     # define phases
     _phi = np.array([0,0,np.pi/2])
-    #_phi = np.array([0,0,0])
-    
-    # unpack parameters
-    omega_j = param[0]
-    detuning = param[1]
-    g = param[2]
-    Gamma = param[3]
-    kappa = param[4]
-    n_opt = param[5]
-    n_mech = param[6]
+    n_opt = 0
     
     # calculate q operator
     if ThreeD == False:
-        operator = q_1D(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
+        operator = q_1D(omega, param.omega_mech, param.detuning, param.g, param.Gamma, param.kappa, _phi)[_i]
     if ThreeD == True:
-        operator = q_3D(omega, omega_j, detuning, g, Gamma, kappa, _phi)[_i]
+        operator = q_3D(omega, param.omega_mech, param.detuning, param.g, param.Gamma, param.kappa, _phi)[_i]
+    
     # calculate spectrum
-    _spectrum = spectrum(operator, n_opt, n_mech)
+    _spectrum = spectrum(operator, n_opt, param.n_mech)
     
     return _spectrum
 
@@ -180,21 +182,6 @@ def n_from_area(_S_plus, _S_minus, _Delta, _N, _name):
     #print('area -', area(SXX_minus, omega))
     return [N_X_plus, N_X_minus, N_X]
 
-def opt_damp_rate(_kappa, _detuning, _g, _omega_j):
-    Det2pi = _detuning * 2*np.pi
-    g_1D = np.array([_g[0], _g[1], _g[2]])
-    Gamma_opt = -g_1D**2 * _kappa * (1/(_kappa**2/4 + (Det2pi+_omega_j)**2) - 1/(_kappa**2/4 + (Det2pi-_omega_j)**2) )  
-
-    print()
-    print('optical cooling rates')
-    print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 3), '1e5')
-    print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 3), '1e5')
-    print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 3), '1e5')
-    
-#    print('mechanical damping')
-#    print('X', Gamma[0])
-    
-    return Gamma_opt
 
 
 def photon_number(_n_j, _Gamma_opt, _Gamma):
@@ -212,3 +199,177 @@ def photon_number(_n_j, _Gamma_opt, _Gamma):
     print('n_z theo: ', round(_n_j[2]/1e8, 4), '1e8')
     
     return N
+
+
+
+
+
+
+
+
+
+
+
+
+
+class parameters:
+    "This class contains all relevant parameters"
+    
+    # class variables
+    #T = 300 #temperatur [K]
+    #R0=100e-9 #sphere radius
+    #RHO=2198 #sphere density
+    #EPSR=2.1 #parameter used to obtain the refractive index
+    #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
+    #lambda_tw = 1064e-9 # wavelength [m]   
+    #WK=5.9e6 #=2*pi/lambda=k
+    #waist=41.1e-6 #waist radius
+    #WX=0.67e-6
+    #WY=0.77e-6
+    #XL=1.07e-2 #cavity length 
+    #Finesse=15e4
+    #Press=1e-6 #air pressure in millibars
+    #Pin1=0.17e0 #input power in Watts tweezer beam
+    #detuning=-300e3 #detuning in KHz trap beam
+    #DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
+    #theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+    
+    # Equilibrium positions 
+    # X0=0.125*lambda ,Y0=waist/sqrt(2)
+    #Y0=0.0e-6
+    #X0=0.125*1.064e-6
+    #X0=0.73*1.064e-6
+    #Z0=0e-6
+    
+    n_opt = 0
+        
+    
+    def print_param(self):
+        print('\n *** PARAMETERS ***')
+        print('T [K]: ', self.T)
+        print('R0 [m]: ', self.R0)
+        print('RHO [kg/m^3]: ', self.RHO)
+        print('EPSR: ', self.EPSR)
+        print('lambda_tw [m]: ', self.lambda_tw)
+        print('waist [m]: ', self.waist)
+        print('W_x [m]: ', self.WX)
+        print('W_y [m]: ', self.WY)
+        print('L_cav [m]: ', self.XL)
+        print('Finesse: ', self.Finesse)
+        print('P [mbar]: ', self.Press)
+        print('P_in [W]: ', self.Pin1)
+        print('detuning [kHz]: ', self.detuning*1e-3)
+        print('Delta_FSR [Hz]: ', self.DelFSR)
+        print('theta [pi]: ', self.theta0)
+        print('X_0 [lambda_tw]: ', self.X0/self.lambda_tw)
+        print('Y_0 [lambda_tw]: ', self.Y0/self.lambda_tw)
+        print('Z_0 [lambda_tw]: ', self.Z0/self.lambda_tw)
+        print('mass [kg]: ', self.XM)
+        print('Polarisibility :', self.Polaris)
+        print('epsilon_tw: ', self.epsTW)
+        print('epsilon_c: ', self.epsCAV)
+        print('kappa/2pi [Hz]: ', self.kappa /(2*np.pi))
+        print('Gamma: ', self.Gamma)
+        print('omega_mech/2pi [kHz]: ', self.omega_mech/(2*np.pi)*1e-3)
+        print('photons in cavity: ', self.n_photon)
+        print('GX, GY, GZ', self.g[0]/2/np.pi, self.g[1]/2/np.pi, self.g[2]/2/np.pi)
+        print('GXY, GYZ, GZX', self.g[3]/2/np.pi, self.g[4]/2/np.pi, self.g[5]/2/np.pi)
+        print('***************')
+        
+    def prepare_calc(self):
+        # mass
+        self.XM=self.RHO*4.*np.pi/3.*self.R0**3
+        
+        # polarisibility
+        self.Polaris=4.*np.pi*Epsi0*(self.EPSR-1)/(self.EPSR+2)*self.R0**3 # from Tania
+        
+        # tweezer properties
+        WK= 2*np.pi / self.lambda_tw#=2*pi/lambda=k
+        OMOPT=c*WK
+        W2=self.waist**2
+        _epsTW=4*self.Pin1/(self.WX*self.WY*np.pi*c*Epsi0)
+        self.epsTW = np.sqrt(_epsTW)
+        
+        # cavity properties
+        VOL=self.XL*np.pi*W2/4 # add a factor of 4 here.
+        KAPPin=np.pi*c/self.Finesse/self.XL
+        _epsCAV=hbar*OMOPT/(2.*VOL*Epsi0)
+        self.epsCAV = np.sqrt(_epsCAV)
+        ZR=self.WX*self.WY*WK/2
+        
+        # linewiddth
+        coeff=WK*self.Polaris/Epsi0/OMOPT**2/np.pi
+        kappnano=4*coeff**2*self.DelFSR*np.cos(WK*self.X0)*np.cos(WK*self.X0)
+        self.kappa=kappnano+KAPPin
+         
+        # Pressure 1.d-4 mBar => ~ 0.125Hz in old expt
+        # now take usual expression eg Levitated review by Li Geraci etc
+        # 1 bar= 10^ 5 pascal; Press is in mbar = 10^ 2 pascal
+        #gamma=16 * P/(np.pi*v*RHO*R)
+        # v=speed of air=500 /s
+        GAMMAM=1600*self.Press/np.pi
+        GAMMAM=GAMMAM/500/self.RHO/self.R0
+        #Fix of Feb.2016 our GAMMAM => GAMMAM/2!!
+        self.Gamma=GAMMAM/2
+        
+        # mechanical frequencies
+        Det2pi=self.detuning*2*np.pi
+        kapp2=0.5*self.kappa
+        Wkx0=WK*self.X0 #was commented out
+        OmX=self.Polaris*self.epsTW**2/self.XM/self.WX**2
+        OmY=self.Polaris*self.epsTW**2/self.XM/self.WY**2
+        OmZ=0.5*self.Polaris*self.epsTW**2/self.XM/ZR**2
+        
+        # theta vs thet
+        thet = self.theta0 * np.pi
+        
+        # photon field
+        Edip=-0.5*self.Polaris*self.epsTW*self.epsCAV*np.sin(thet)
+        Ediph=Edip/hbar
+        print('Edip/2/pi/hbar=', Ediph/2/np.pi)
+        ALPRe=Det2pi*Ediph*np.cos(Wkx0)/(kapp2**2+Det2pi**2)
+        ALPim=-kapp2*Ediph*np.cos(Wkx0)/(kapp2**2+Det2pi**2)
+        Nphoton=Ediph*Ediph*np.cos(Wkx0)*np.cos(Wkx0)
+        self.n_photon=Nphoton/(kapp2**2+Det2pi**2)
+        
+        # corrections to frequencies due to cavity
+        C1=-Edip/self.XM*2.*ALPRe*WK**2*np.cos(Wkx0)
+        OmX=OmX+C1*np.sin(thet)*np.sin(thet)
+        OmY=OmY+C1*np.cos(thet)*np.cos(thet)
+        OmZ=OmZ-2.*Edip/self.XM*ALPRe*(WK-1/ZR)**2*np.cos(Wkx0)
+        self.omega_mech = np.array([np.sqrt(OmX), np.sqrt(OmY), np.sqrt(OmZ)])
+        
+        # phonon number at equilibrium
+        self.n_mech = k*self.T/(hbar * self.omega_mech)
+            
+        ### COUPLINGS
+        # Optomechanical couplings
+        XZPF = np.sqrt(hbar/(2*self.XM*self.omega_mech[0]))
+        YZPF = np.sqrt(hbar/(2*self.XM*self.omega_mech[1]))
+        ZZPF = np.sqrt(hbar/(2*self.XM*self.omega_mech[2]))
+    
+        # light-matter couplings
+        GX = Ediph*WK*XZPF*np.sin(thet)*np.sin(Wkx0)
+        GY = Ediph*WK*YZPF*np.cos(thet)*np.sin(Wkx0)
+        GZ = -Ediph*(WK-1/ZR)*ZZPF*np.cos(Wkx0)
+        
+        # matter-matter couplings
+        GXY = Ediph*WK*XZPF*WK*YZPF*ALPRe*np.sin(2*thet)*np.cos(Wkx0)
+        GZX = 2*Ediph*(WK-1/ZR)*ZZPF*WK*XZPF*ALPim*np.sin(Wkx0)*np.sin(thet)
+        GYZ = 2*Ediph*(WK-1/ZR)*ZZPF*WK*YZPF*ALPim*np.sin(Wkx0)*np.cos(thet)
+      
+        self.g = np.array([GX, GY, GZ, GXY, GYZ, GZX])
+     
+        
+    def opt_damp_rate(self):
+        Det2pi = self.detuning * 2*np.pi
+        g_1D = np.array([self.g[0], self.g[1], self.g[2]])
+        Gamma_opt = -g_1D**2 * self.kappa * (1/(self.kappa**2/4 + (Det2pi+self.omega_mech)**2) - 1/(self.kappa**2/4 + (Det2pi-self.omega_mech)**2) )  
+    
+        print()
+        print('optical cooling rates')
+        print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 3), '1e5')
+        print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 3), '1e5')
+        print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 3), '1e5')
+            
+        return Gamma_opt
