@@ -1,5 +1,7 @@
 import numpy as np
 import inspect
+import time
+import datetime
 
 
 '''
@@ -169,16 +171,17 @@ def area(_S, _Delta):
    
     
 
-def n_from_area(_S_plus, _S_minus, _Delta, _N, _name):
-    N_X_plus = area(_S_plus, _Delta)
-    N_X_minus = area(_S_minus, _Delta)
+def n_from_area(_S_plus, _S_minus, _Delta_omega, _N = 0, _name = '', printing = True):
+    N_X_plus = area(_S_plus, _Delta_omega)
+    N_X_minus = area(_S_minus, _Delta_omega)
     N_X = (N_X_plus + N_X_minus -1)/2
     
-    print()
-    print(_name, 'photon number from area, difference')
-    print('+:', round(N_X_plus, 2), '(', round((N_X_plus-_N)/(_N+1)*100, 2), '% )')
-    print('-:', round(N_X_minus, 2), '(', round((N_X_minus-_N)/(_N)*100, 2), '% )')
-    print('summed:', round(N_X, 2), '(', round((N_X-_N)/(_N)*100, 2), '% )')
+    if printing == True:
+        print()
+        print(_name, 'photon number from area, difference')
+        print('+:', round(N_X_plus, 2), '(', round((N_X_plus-_N)/(_N+1)*100, 2), '% )')
+        print('-:', round(N_X_minus, 2), '(', round((N_X_minus-_N)/(_N)*100, 2), '% )')
+        print('summed:', round(N_X, 2), '(', round((N_X-_N)/(_N)*100, 2), '% )')
     #print('area -', area(SXX_minus, omega))
     return [N_X_plus, N_X_minus, N_X]
 
@@ -326,7 +329,6 @@ class parameters:
         # photon field
         Edip=-0.5*self.Polaris*self.epsTW*self.epsCAV*np.sin(thet)
         Ediph=Edip/hbar
-        print('Edip/2/pi/hbar=', Ediph/2/np.pi)
         ALPRe=Det2pi*Ediph*np.cos(Wkx0)/(kapp2**2+Det2pi**2)
         ALPim=-kapp2*Ediph*np.cos(Wkx0)/(kapp2**2+Det2pi**2)
         Nphoton=Ediph*Ediph*np.cos(Wkx0)*np.cos(Wkx0)
@@ -373,3 +375,21 @@ class parameters:
         print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 3), '1e5')
             
         return Gamma_opt
+
+def loop_progress(L_inner, L_outer, inner, outer, start_time):
+    length = L_inner * L_outer
+    progress = (inner + L_inner*outer)/length
+    current = time.time()
+    diff = current - start_time
+    if progress != 0:
+        rest_time = round((diff)/progress * (1-progress))
+    else: 
+        rest_time = 0
+        
+    current_time_form = str(datetime.timedelta(seconds=round(diff)))
+    remaining_time_form = str(datetime.timedelta(seconds=rest_time))
+    #print('\n completed: ',  round(progress*100, 2), '%, remaining time: ', str(datetime.timedelta(seconds=rest_time)) )
+    print('completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form), end = '\r')
+    
+    
+    
