@@ -13,12 +13,22 @@ index j: different operators
 
 
 k = 1.380649e-23 #J/K
+k = 1.4e-23
 hbar = 1.054571817e-34 #Js
 hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
  
+
+k = 1.380649e-23 #J/K
+#k = 1.4e-23
+hbar = 1.054571817e-34 #Js
+#hbar = 1.05e-34 #Js
+c = 3e8 #m/s
+grav = 9.8 #m/s^2
+Epsi0=8.854e-12
+
 
 
 ### operators (only 1D by now)
@@ -82,9 +92,9 @@ def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
     
-    q1 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
-    q2 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
-    q3 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
+    q1 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
+    q2 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
+    q3 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
 
     return [q1, q2, q3]
 
@@ -125,7 +135,6 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     
     return [q1, q2, q3]
 
-
     
 ### helper
 def expectation_value(_operator, _n, _pair):
@@ -136,6 +145,7 @@ def spectrum(_operator, _n_opt, _n_mech):
     s_b1 = expectation_value(_operator, _n_mech[0], 1)
     s_b2 = expectation_value(_operator, _n_mech[1], 2)
     s_b3 = expectation_value(_operator, _n_mech[2], 3)
+    #return s_a + s_b1 + s_b2 + s_b3
     return s_a + s_b1 + s_b2 + s_b3
 
 
@@ -143,6 +153,8 @@ def spectrum_output(omega, _i, param, ThreeD):
     # define phases
     _phi = np.array([0,0,np.pi/2])
     n_opt = 0
+    
+#    param.detuning = param.detuning*2*np.pi
     
     # calculate q operator
     if ThreeD == False:
@@ -157,6 +169,48 @@ def spectrum_output(omega, _i, param, ThreeD):
 
 
 
+def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech):
+    kappa = 2*KAPP2
+    Sqrtkapp=np.sqrt(2*KAPP2)
+    phi = np.array([0, 0, np.pi/2])
+    BAX, BAY, BAZ = q_1D(omega, omega_j, detuning, g, Gamma, kappa, phi)
+    
+#    Sqrtgamm=np.sqrt(2*Gamm2)
+
+# now work out the optical trap field =a1
+    CA1= 1j * chi(omega, -detuning, kappa)
+# now work out the photon field a1dagger
+    CA1dagg= -1j * np.conj(chi(-omega, -detuning, kappa))
+    
+    #A1 = np.array([0+1j,0,0,0,0,0,0,0])
+    #A1dagg = np.array([0+1j,0,0,0,0,0,0,0])
+#
+    #for i in range(NTOT):
+    A1=CA1*(g[0]*BAX+g[1]*BAY+g[2]*BAZ)
+    A1dagg=CA1dagg*(g[0]*BAX+g[1]*BAY+g[2]*BAZ)
+         
+# add shot or incoming noise
+# trap beam: add cavity-filtered contribution
+    A1[1]=A1[1]+Sqrtkapp* chi(omega, -detuning, kappa)
+    A1dagg[2]=A1dagg[2]+Sqrtkapp*np.conj(chi(-omega, -detuning, kappa))
+
+# cavity output : add incoming imprecision
+# work out a_out=a_in-Sqrtkapp(a)
+    #for i in range(NTOT):
+    A1=-A1*Sqrtkapp
+    A1dagg=-A1dagg*Sqrtkapp
+      
+    A1[1]=1+A1[1]
+    A1dagg[2]=1+A1dagg[2]
+#####################################################################
+    
+#####################################################################
+    ### ROUTINE HOMODYNE ###
+    
+    XTHET1 = A1 + A1dagg
+    
+    SHOM1 = spectrum(XTHET1, n_opt, n_mech)
+    return
 
 def area(_S, _Delta):     
 
@@ -389,7 +443,7 @@ def loop_progress(L_inner, L_outer, inner, outer, start_time):
     current_time_form = str(datetime.timedelta(seconds=round(diff)))
     remaining_time_form = str(datetime.timedelta(seconds=rest_time))
     #print('\n completed: ',  round(progress*100, 2), '%, remaining time: ', str(datetime.timedelta(seconds=rest_time)) )
-    print('completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form), end = '\r')
+    print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form), end = '\r')
     
     
     
