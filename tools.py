@@ -12,6 +12,7 @@ index j: different operators
 '''
 
 
+
 k = 1.380649e-23 #J/K
 k = 1.4e-23
 hbar = 1.054571817e-34 #Js
@@ -19,15 +20,6 @@ hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
- 
-
-k = 1.380649e-23 #J/K
-#k = 1.4e-23
-hbar = 1.054571817e-34 #Js
-#hbar = 1.05e-34 #Js
-c = 3e8 #m/s
-grav = 9.8 #m/s^2
-Epsi0=8.854e-12
 
 
 
@@ -53,6 +45,7 @@ b3_in_d[7] = 1
 ### SUSCEPTIBILITIES ###
 # chi
 def chi(_omega, _omega_j, _Gamma):
+    #print('Gamma, chi', _Gamma)
     return 1/(-1j*(_omega-_omega_j) + _Gamma/2.0)
 
 # optical
@@ -92,9 +85,9 @@ def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
     
-    q1 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
-    q2 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
-    q3 = np.sqrt(2*_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
+    q1 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[0], _Q_mech[0]) + 1j*np.sqrt(_kappa)*_g[0]*np.einsum('i, i, ji->ji',1/_M[0], _mu[0], Q_opt(_omega, _detuning, _kappa, _phi[0]))
+    q2 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[1], _Q_mech[1]) + 1j*np.sqrt(_kappa)*_g[1]*np.einsum('i, i, ji->ji',1/_M[1], _mu[1], Q_opt(_omega, _detuning, _kappa, _phi[1]))
+    q3 = np.sqrt(_Gamma)*np.einsum('i,ji -> ji',1/_M[2], _Q_mech[2]) + 1j*np.sqrt(_kappa)*_g[2]*np.einsum('i, i, ji->ji',1/_M[2], _mu[2], Q_opt(_omega, _detuning, _kappa, _phi[2]))
 
     return [q1, q2, q3]
 
@@ -169,7 +162,7 @@ def spectrum_output(omega, _i, param, ThreeD):
 
 
 
-def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech):
+def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech, n_opt):
     kappa = 2*KAPP2
     Sqrtkapp=np.sqrt(2*KAPP2)
     phi = np.array([0, 0, np.pi/2])
@@ -210,7 +203,7 @@ def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech):
     XTHET1 = A1 + A1dagg
     
     SHOM1 = spectrum(XTHET1, n_opt, n_mech)
-    return
+    return SHOM1
 
 def area(_S, _Delta):     
 
@@ -326,6 +319,7 @@ class parameters:
         print('epsilon_tw: ', self.epsTW)
         print('epsilon_c: ', self.epsCAV)
         print('kappa/2pi [Hz]: ', self.kappa /(2*np.pi))
+        print('ZR [m]', self.ZR)
         print('Gamma: ', self.Gamma)
         print('omega_mech/2pi [kHz]: ', self.omega_mech/(2*np.pi)*1e-3)
         print('photons in cavity: ', self.n_photon)
@@ -353,6 +347,7 @@ class parameters:
         _epsCAV=hbar*OMOPT/(2.*VOL*Epsi0)
         self.epsCAV = np.sqrt(_epsCAV)
         ZR=self.WX*self.WY*WK/2
+        self.ZR = ZR
         
         # linewiddth
         coeff=WK*self.Polaris/Epsi0/OMOPT**2/np.pi
@@ -424,9 +419,9 @@ class parameters:
     
         print()
         print('optical cooling rates')
-        print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 3), '1e5')
-        print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 3), '1e5')
-        print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 3), '1e5')
+        print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 7), '1e5')
+        print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 7), '1e5')
+        print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 7), '1e5')
             
         return Gamma_opt
 
