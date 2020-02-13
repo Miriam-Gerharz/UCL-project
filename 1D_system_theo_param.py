@@ -16,9 +16,9 @@ import tools
 #################
 
 k = 1.380649e-23 #J/K
-k = 1.4e-23
+#k = 1.4e-23
 hbar = 1.054571817e-34 #Js
-hbar = 1.05e-34 #Js
+#hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 
@@ -46,7 +46,7 @@ param.detuning = -300e3 * 2*np.pi #Hz
 #print("laser freq: ", round(omega_laser*1e-9), 'GHz')
 
 # damping
-param.Gamma = 1e-8 # mechanical damping
+param.Gamma = 1e-2 # mechanical damping
 param.kappa = 2*np.pi*93e3 #Hz
 print('kapp2/2pi', param.kappa/4/np.pi)
 print(param.Gamma)
@@ -65,14 +65,14 @@ param.n_mech = k*param.T/(hbar * param.omega_mech)
 
 omega_minus = -1*omega # freq for spectrum
 
-filename = 'pic/1D/theo_param_spectrum_1D_calc_low'
+filename = 'pic/1D/theo_param_spectrum_1D_calc_high'
     
 ############    
 ### MAIN ###
 ############
    
 # optical damping rates
-Gamma_opt = tools.opt_damp_rate(param.kappa, param.detuning, param.g, param.omega_mech)
+Gamma_opt = param.opt_damp_rate()
 
 # photon numbers at equiv
 N = tools.photon_number(param.n_mech, Gamma_opt, param.Gamma)
