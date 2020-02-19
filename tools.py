@@ -14,46 +14,75 @@ index j: different operators
 
 
 k = 1.380649e-23 #J/K
-k = 1.4e-23
+#k = 1.4e-23
 hbar = 1.054571817e-34 #Js
-hbar = 1.05e-34 #Js
+#hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
 
 
 
-### operators (only 1D by now)
-a_in = np.zeros(8)
-a_in_d = np.zeros(8)
-b1_in = np.zeros(8)
-b1_in_d = np.zeros(8)
-b2_in = np.zeros(8)
-b2_in_d = np.zeros(8)
-b3_in = np.zeros(8)
-b3_in_d = np.zeros(8)
-
-a_in[0] = 1
-a_in_d[1] = 1
-b1_in[2] = 1
-b1_in_d[3] = 1
-b2_in[4] = 1
-b2_in_d[5] = 1
-b3_in[6] = 1
-b3_in_d[7] = 1
 
 ### SUSCEPTIBILITIES ###
 # chi
 def chi(_omega, _omega_j, _Gamma):
+    """Calculates what is defined as chi in the paper
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : float
+        respective mechanical frequency
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+        
+    Returns
+    -------
+    np.array 
+    """
     #print('Gamma, chi', _Gamma)
     return 1/(-1j*(_omega-_omega_j) + _Gamma/2.0)
 
 # optical
 def eta(_omega, _detuning, _phi, _kappa):
+    """Calculates optical susceptibility
+    
+    Parameters
+    ---------
+    _omega : numpy array
+        The frequency range of which chi shall be calculated
+    _detuning : float
+        The detuning
+    _phi : float
+        Phase ???
+    _kappa : float
+        cavity linewidth
+        
+    Returns
+    -------
+    np.array
+    """
     return np.exp(-1j*_phi)*chi(_omega, -_detuning, _kappa) - np.exp(1j*_phi)*np.conj(chi(-_omega, -_detuning, _kappa))
                   
 # mechanical 
 def mu(_omega, _omega_j, _Gamma):
+    """Calculates the mechanical susceptibilities
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : numpy array of length 3
+        mechanical frequencies
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+        
+    Returns
+    -------
+    np.array 
+    """
     mu1 = chi(_omega, _omega_j[0], _Gamma) - np.conj(chi(-_omega, _omega_j[0], _Gamma))
     mu2 = chi(_omega, _omega_j[1], _Gamma) - np.conj(chi(-_omega, _omega_j[1], _Gamma))
     mu3 = chi(_omega, _omega_j[2], _Gamma) - np.conj(chi(-_omega, _omega_j[2], _Gamma))
@@ -62,10 +91,65 @@ def mu(_omega, _omega_j, _Gamma):
 ### NOISES ###
 # optical
 def Q_opt(_omega, _detuning, _kappa, _phi):
+    """Calculates optical noise
+    
+    Parameters
+    ---------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _detuning: float
+        The detuning
+    _kappa : float
+        cavity linewidth
+    _phi : float
+        Phase ???
+       
+    Returns
+    -------
+    2D np.array
+    """
+    
+    # define operators
+    a_in = np.zeros(8)
+    a_in_d = np.zeros(8)
+    
+    a_in[0] = 1
+    a_in_d[1] = 1
+    
     return np.exp(-1j*_phi)*np.einsum('i, j->ji', chi(_omega, -_detuning, _kappa), a_in) + np.exp(1j*_phi)*np.einsum('i, j->ji', np.conj(chi(-_omega, -_detuning, _kappa)), a_in_d)
 
 # mechanical
 def Q_mech(_omega, _omega_j, _Gamma):
+    """Calculates the mechanical noises
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : numpy array of length 3
+        mechanical frequencies
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+        
+    Returns
+    -------
+    2D np.array 
+    """
+    ### operators
+    b1_in = np.zeros(8)
+    b1_in_d = np.zeros(8)
+    b2_in = np.zeros(8)
+    b2_in_d = np.zeros(8)
+    b3_in = np.zeros(8)
+    b3_in_d = np.zeros(8)
+    
+    b1_in[2] = 1
+    b1_in_d[3] = 1
+    b2_in[4] = 1
+    b2_in_d[5] = 1
+    b3_in[6] = 1
+    b3_in_d[7] = 1
+    
     Q1 = np.einsum('i, j-> ji', chi(_omega, _omega_j[0], _Gamma),b1_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[0], _Gamma)),b1_in_d)
     Q2 = np.einsum('i, j-> ji', chi(_omega, _omega_j[1], _Gamma),b2_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[1], _Gamma)),b2_in_d)
     Q3 = np.einsum('i, j-> ji', chi(_omega, _omega_j[2], _Gamma),b3_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[2], _Gamma)),b3_in_d)
@@ -74,6 +158,29 @@ def Q_mech(_omega, _omega_j, _Gamma):
 
 ### normalization factor
 def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
+    """Calculates the normalization factor
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : numpy array of length 3
+        mechanical frequencies
+    _detuning : float
+        Detuning
+    _phi : np.array
+        [0,0,pi/2]
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+    _kappa : float
+        linewidth of cavity
+    _g : np.array
+        Couplings (g_x, g_y, g_z, g_xy, g_yz, g_zx)
+        
+    Returns
+    -------
+    2D np.array 
+    """
     M1 = 1+ _g[0]**2 *mu(_omega, _omega_j, _Gamma)[0]*eta(_omega, _detuning, _phi[0], _kappa)
     M2 = 1+ _g[1]**2 *mu(_omega, _omega_j, _Gamma)[1]*eta(_omega, _detuning, _phi[1], _kappa)
     M3 = 1+ _g[2]**2 *mu(_omega, _omega_j, _Gamma)[2]*eta(_omega, _detuning, _phi[2], _kappa)
@@ -81,6 +188,29 @@ def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
 
 ### displacement operator
 def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
+    """Calculates the operator q_j $\propto$(b_j+b_j^\dagger) without taking into account the 3D contributions
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : numpy array of length 3
+        mechanical frequencies
+    _detuning : float
+        Detuning
+    _g : np.array
+        Couplings (g_x, g_y, g_z, g_xy, g_yz, g_zx)
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+    _kappa : float
+        linewidth of cavity
+    _phi : np.array
+        [0,0,pi/2]
+        
+    Returns
+    -------
+    2D np.array 
+    """
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
@@ -92,6 +222,30 @@ def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     return [q1, q2, q3]
 
 def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
+    """Calculates the operator q_j $\propto$(b_j+b_j^\dagger) with taking into account the 3D contributions
+    
+    Parameters
+    ----------
+    _omega : 1D numpy array
+        The frequency range of which chi shall be calculated
+    _omega_j : numpy array of length 3
+        mechanical frequencies
+    _detuning : float
+        Detuning
+    _g : np.array
+        Couplings (g_x, g_y, g_z, g_xy, g_yz, g_zx)
+    _Gamma : float
+        Damping (either $\Gamma$ or $\kappa$)
+    _kappa : float
+        linewidth of cavity
+    _phi : np.array
+        [0,0,pi/2]
+        
+    Returns
+    -------
+    2D np.array 
+    """
+
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
     #_Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
@@ -131,9 +285,41 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     
 ### helper
 def expectation_value(_operator, _n, _pair):
+    """Calculates the expectation value of an operator by analyzing the noises
+    
+    Parameters
+    ----------
+    _operator : np.array
+        operator as function of omega (containing all directions)
+    _n : float
+        Expectation value of the respective noise
+    _pair : integer
+        select pair (0=photon, 1=x, 2=y, 3=z)
+    
+    Returns
+    -------
+    : np.array
+        expectation value as function of omega
+    """
     return (_n+1)* np.abs(_operator[2*_pair])**2 + _n * np.abs(_operator[2*_pair+1])**2
 
 def spectrum(_operator, _n_opt, _n_mech):
+    """Calculates the PSD
+    
+    Parameters
+    ----------
+    _operator : np.array
+        operator as function of omega (containing all directions)
+    _n_opt : float
+        optical photon number (n_opt=0)
+    _n_mech : np.array
+        phonon numbers (n_x, n_y, n_z)
+    
+    Returns
+    -------
+    : np.array
+        expectation value as function of omega
+    """
     s_a = expectation_value(_operator, _n_opt, 0)
     s_b1 = expectation_value(_operator, _n_mech[0], 1)
     s_b2 = expectation_value(_operator, _n_mech[1], 2)
@@ -143,6 +329,25 @@ def spectrum(_operator, _n_opt, _n_mech):
 
 
 def spectrum_output(omega, _i, param, ThreeD):
+    """Calculates the PSD for a given omega regime and set of parameters
+    
+    Parameters
+    ----------
+    omega: np.array
+        Frequency range in which the spectrum is to be computed
+    _i : integer
+        selection of operator (0=photon, 1=x, 2=y, 3=z)
+    param : class param
+        set of parameters
+    ThreedD : boolean
+        Consider 3D contribution (True) or not (False)
+        
+    Returns
+    -------
+     : np.array
+         PSD(omega)
+    """
+    
     # define phases
     _phi = np.array([0,0,np.pi/2])
     n_opt = 0
@@ -163,6 +368,7 @@ def spectrum_output(omega, _i, param, ThreeD):
 
 
 def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech, n_opt):
+    """Defined but never used"""
     kappa = 2*KAPP2
     Sqrtkapp=np.sqrt(2*KAPP2)
     phi = np.array([0, 0, np.pi/2])
@@ -205,7 +411,21 @@ def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech, n_opt):
     SHOM1 = spectrum(XTHET1, n_opt, n_mech)
     return SHOM1
 
-def area(_S, _Delta):     
+def area(_S, _Delta): 
+    """Calculates area under curve
+
+    Parameters
+    ----------
+    _S : np.array
+        spectrum
+    _Delta : float
+        spacing of omega
+    
+    Returns
+    -------
+     : float
+        Area under the spectrum
+    """
 
 #  integrate the position spectrum of bead
 # quick hack - use trapezoidal rule- improve later
@@ -219,6 +439,28 @@ def area(_S, _Delta):
     
 
 def n_from_area(_S_plus, _S_minus, _Delta_omega, _N = 0, _name = '', printing = True):
+    """Calculates phonon number from area and compares it to the one from the formula
+    
+    Parameters
+    ----------
+    _S_plus : np.array
+        Spectrum for positive omega
+    _S_minus : np.array
+        Spectrum for negative omega
+    _Delta_omega : float
+        Spacing of omega
+    _N : float
+        Phonon number from formula
+    _name : str
+        Name of respective operator (x, y or z)
+    printing : boolean
+        Print the result (True), default is True
+    
+    Returns
+    -------
+     : list
+        Phonon numbers (N_plus, N_minus, N_total)
+    """
     N_X_plus = area(_S_plus, _Delta_omega)
     N_X_minus = area(_S_minus, _Delta_omega)
     N_X = (N_X_plus + N_X_minus -1)/2
@@ -234,19 +476,38 @@ def n_from_area(_S_plus, _S_minus, _Delta_omega, _N = 0, _name = '', printing = 
 
 
 
-def photon_number(_n_j, _Gamma_opt, _Gamma):
+def photon_number(_n_j, _Gamma_opt, _Gamma, printing = True):
+    """Calculates the phonon number from the formula
+    
+    Parameters
+    ----------
+    _n_j : np.array
+        phonon numbers at room temperature
+    _Gamma_opt : np.array
+        optical damping rate (x,y,z)
+    _Gamma : float
+        mechanical damping rate
+    printing : boolean
+        Print the result (True), default is True
+    
+    Returns
+    -------
+     : np.array
+        Phonon numbers (N_plus, N_minus, N_total)
+    """
     N = 2*_n_j * _Gamma / (abs(_Gamma_opt) + 2*_Gamma)
     
-    print()
-    print('theoretical photon numbers at equiv')
-    print('n_x theo: ', round(N[0], 4))
-    print('n_y theo: ', round(N[1], 4))
-    print('n_z theo: ', round(N[2], 4))
-    
-    print('theoretical photon numbers at room temperature')
-    print('n_x theo: ', round(_n_j[0]/1e8, 4), '1e8')
-    print('n_y theo: ', round(_n_j[1]/1e8, 4), '1e8')
-    print('n_z theo: ', round(_n_j[2]/1e8, 4), '1e8')
+    if printing == True:
+        print()
+        print('theoretical photon numbers at equiv')
+        print('n_x theo: ', round(N[0], 4))
+        print('n_y theo: ', round(N[1], 4))
+        print('n_z theo: ', round(N[2], 4))
+        
+        print('theoretical photon numbers at room temperature')
+        print('n_x theo: ', round(_n_j[0]/1e8, 4), '1e8')
+        print('n_y theo: ', round(_n_j[1]/1e8, 4), '1e8')
+        print('n_z theo: ', round(_n_j[2]/1e8, 4), '1e8')
     
     return N
 
@@ -295,6 +556,8 @@ class parameters:
         
     
     def print_param(self):
+        """Prints all the parameters in a nice fashion"""
+        
         print('\n *** PARAMETERS ***')
         print('T [K]: ', self.T)
         print('R0 [m]: ', self.R0)
@@ -328,6 +591,13 @@ class parameters:
         print('***************')
         
     def prepare_calc(self):
+        """Calculates all the theoretical relevant parameters if only the experimental ones are given
+        
+        Warning
+        ------
+        Detuning has to be given in Hz/2pi
+        """
+        
         # mass
         self.XM=self.RHO*4.*np.pi/3.*self.R0**3
         
@@ -340,7 +610,7 @@ class parameters:
         W2=self.waist**2
         _epsTW=4*self.Pin1/(self.WX*self.WY*np.pi*c*Epsi0)
         self.epsTW = np.sqrt(_epsTW)
-        
+            
         # cavity properties
         VOL=self.XL*np.pi*W2/4 # add a factor of 4 here.
         KAPPin=np.pi*c/self.Finesse/self.XL
@@ -348,6 +618,7 @@ class parameters:
         self.epsCAV = np.sqrt(_epsCAV)
         ZR=self.WX*self.WY*WK/2
         self.ZR = ZR
+        #print(OMOPT)
         
         # linewiddth
         coeff=WK*self.Polaris/Epsi0/OMOPT**2/np.pi
@@ -372,6 +643,7 @@ class parameters:
         OmY=self.Polaris*self.epsTW**2/self.XM/self.WY**2
         OmZ=0.5*self.Polaris*self.epsTW**2/self.XM/ZR**2
         
+        
         # theta vs thet
         thet = self.theta0 * np.pi
         
@@ -388,6 +660,8 @@ class parameters:
         OmX=OmX+C1*np.sin(thet)*np.sin(thet)
         OmY=OmY+C1*np.cos(thet)*np.cos(thet)
         OmZ=OmZ-2.*Edip/self.XM*ALPRe*(WK-1/ZR)**2*np.cos(Wkx0)
+        
+        
         self.omega_mech = np.array([np.sqrt(OmX), np.sqrt(OmY), np.sqrt(OmZ)])
         
         # phonon number at equilibrium
@@ -412,20 +686,52 @@ class parameters:
         self.g = np.array([GX, GY, GZ, GXY, GYZ, GZX])
      
         
-    def opt_damp_rate(self):
+    def opt_damp_rate(self, printing = False):
+        """Calculates the optical damping rate
+        
+        Parameters
+        ----------
+        printing : boolean
+            Result is printed (True) or not, default True
+            
+        Returns
+        -------
+         : np.array
+            Optical damping rate for (x,y and z)
+        
+        Warning
+        -------
+        Detuning has to be given in Hz/2pi
+        """
         Det2pi = self.detuning * 2*np.pi
         g_1D = np.array([self.g[0], self.g[1], self.g[2]])
         Gamma_opt = -g_1D**2 * self.kappa * (1/(self.kappa**2/4 + (Det2pi+self.omega_mech)**2) - 1/(self.kappa**2/4 + (Det2pi-self.omega_mech)**2) )  
     
-        print()
-        print('optical cooling rates')
-        print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 7), '1e5')
-        print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 7), '1e5')
-        print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 7), '1e5')
+        if printing == True:
+            print()
+            print('optical cooling rates')
+            print('$\Gamma_{opt, x}$:', round(Gamma_opt[0]/1e5, 7), '1e5')
+            print('$\Gamma_{opt, y}$:', round(Gamma_opt[1]/1e5, 7), '1e5')
+            print('$\Gamma_{opt, z}$:', round(Gamma_opt[2]/1e5, 7), '1e5')
             
         return Gamma_opt
 
 def loop_progress(L_inner, L_outer, inner, outer, start_time):
+    """Print nice progress control in terminal
+    
+    Parameters
+    ----------
+    L_inner : integer
+        length of inner loop
+    L_outer : integer
+        length of outer loop
+    inner : integer
+        current value of loop parameter of inner loop
+    outer : integer
+        current value of loop parameter of outer loop
+    start_time : float
+        time when loops where started
+    """
     length = L_inner * L_outer
     progress = (inner + L_inner*outer)/length
     current = time.time()
@@ -438,7 +744,7 @@ def loop_progress(L_inner, L_outer, inner, outer, start_time):
     current_time_form = str(datetime.timedelta(seconds=round(diff)))
     remaining_time_form = str(datetime.timedelta(seconds=rest_time))
     #print('\n completed: ',  round(progress*100, 2), '%, remaining time: ', str(datetime.timedelta(seconds=rest_time)) )
-    print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form), end = '\r')
+    print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form))
     
     
     
