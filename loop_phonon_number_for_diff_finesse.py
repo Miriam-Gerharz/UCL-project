@@ -32,7 +32,7 @@ Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
 
 omega = np.arange(0, 400, 0.5e-2)*1e3*2*np.pi # freq for spectrum
 
-settings = 'Tania'
+#settings = 'Tania'
 #settings = 'Delic'
 
 #consider_3D = False
@@ -45,34 +45,33 @@ finess = np.logspace(2, 7, 30, endpoint = True)
 
 
 ### setiings Tania ###
-if settings == 'Tania':
-    param.T = 300 #temperatur [K]
-    param.R0=100e-9 #sphere radius
-    param.RHO=2198 #sphere density
-    param.EPSR=2.1 #parameter used to obtain the refractive index
-    #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
-    param.lambda_tw = 1064e-9 # wavelength [m]   
-    #WK=5.9e6 #=2*pi/lambda=k
-    param.waist=41.1e-6 #waist radius
-    param.WX=0.67e-6
-    param.WY=0.77e-6
-    param.XL=1.07e-2 #cavity length 
-    #param.Finesse=15e4
-    param.Press=1e-6 #air pressure in millibars
-    param.Pin1=0.17e0 #input power in Watts tweezer beam
-    param.detuning=-300e3 #detuning in KHz trap beam
-    param.DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
-    param.theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+param.T = 300 #temperatur [K]
+param.R0=100e-9 #sphere radius
+#param.RHO=2198 #sphere density
+#param.EPSR=2.1 #parameter used to obtain the refractive index
+#              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
+#param.lambda_tw = 1064e-9 # wavelength [m]   
+#WK=5.9e6 #=2*pi/lambda=k
+#param.waist=41.1e-6 #waist radius
+#param.WX=0.67e-6
+#param.WY=0.77e-6
+#param.XL=1.07e-2 #cavity length 
+param.Finesse=15e4
+param.Press=1e-6 #air pressure in millibars
+param.Pin1=0.4e0 #input power in Watts tweezer beam
+param.detuning=-300e3 #detuning in KHz trap beam
+#param.DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
+param.theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+
+# Equilibrium positions 
+# X0=0.125*lambda ,Y0=waist/sqrt(2)
+#param.Y0=0.0e-6
+#X0=0.125*1.064e-6
+param.X0=0.125*1.064e-6
+#param.Z0=0e-6
     
-    # Equilibrium positions 
-    # X0=0.125*lambda ,Y0=waist/sqrt(2)
-    param.Y0=0.0e-6
-    #X0=0.125*1.064e-6
-    param.X0=0.125*1.064e-6
-    param.Z0=0e-6
     
-    
-    filename = 'pic/1D/phonon_numbers_for_diff_finess'
+filename = 'pic/1D/phonon_numbers_for_diff_finess'
 
     #filename = 'pic/3D_setup_Tania_1'
 

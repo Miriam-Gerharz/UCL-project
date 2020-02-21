@@ -40,7 +40,8 @@ def chi(_omega, _omega_j, _Gamma):
         
     Returns
     -------
-    np.array 
+     : np.array 
+         chi(omega)
     """
     #print('Gamma, chi', _Gamma)
     return 1/(-1j*(_omega-_omega_j) + _Gamma/2.0)
@@ -62,7 +63,8 @@ def eta(_omega, _detuning, _phi, _kappa):
         
     Returns
     -------
-    np.array
+     : np.array
+        eta(omega)
     """
     return np.exp(-1j*_phi)*chi(_omega, -_detuning, _kappa) - np.exp(1j*_phi)*np.conj(chi(-_omega, -_detuning, _kappa))
                   
@@ -81,7 +83,8 @@ def mu(_omega, _omega_j, _Gamma):
         
     Returns
     -------
-    np.array 
+     : np.array 
+        mu(omega)
     """
     mu1 = chi(_omega, _omega_j[0], _Gamma) - np.conj(chi(-_omega, _omega_j[0], _Gamma))
     mu2 = chi(_omega, _omega_j[1], _Gamma) - np.conj(chi(-_omega, _omega_j[1], _Gamma))
@@ -106,7 +109,8 @@ def Q_opt(_omega, _detuning, _kappa, _phi):
        
     Returns
     -------
-    2D np.array
+     : 2D np.array
+         Q_opt(omega, mode)
     """
     
     # define operators
@@ -133,7 +137,8 @@ def Q_mech(_omega, _omega_j, _Gamma):
         
     Returns
     -------
-    2D np.array 
+     : 2D np.array 
+         Q_mech(omega, mode) 
     """
     ### operators
     b1_in = np.zeros(8)
@@ -179,7 +184,8 @@ def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
         
     Returns
     -------
-    2D np.array 
+     : 2D np.array 
+         M(omega, mode)
     """
     M1 = 1+ _g[0]**2 *mu(_omega, _omega_j, _Gamma)[0]*eta(_omega, _detuning, _phi[0], _kappa)
     M2 = 1+ _g[1]**2 *mu(_omega, _omega_j, _Gamma)[1]*eta(_omega, _detuning, _phi[1], _kappa)
@@ -209,7 +215,8 @@ def q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
         
     Returns
     -------
-    2D np.array 
+     : 2D np.array 
+         q(omega, mode) 1D
     """
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
     _Q_mech = Q_mech(_omega, _omega_j, _Gamma)
@@ -243,7 +250,8 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
         
     Returns
     -------
-    2D np.array 
+     : 2D np.array 
+         q(omega, mode) 3D
     """
 
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
@@ -298,8 +306,8 @@ def expectation_value(_operator, _n, _pair):
     
     Returns
     -------
-    : np.array
-        expectation value as function of omega
+     : np.array
+        <operator>(omega)
     """
     return (_n+1)* np.abs(_operator[2*_pair])**2 + _n * np.abs(_operator[2*_pair+1])**2
 
@@ -317,8 +325,8 @@ def spectrum(_operator, _n_opt, _n_mech):
     
     Returns
     -------
-    : np.array
-        expectation value as function of omega
+     : np.array
+        <operator>_total(omega) (sum over all modes)
     """
     s_a = expectation_value(_operator, _n_opt, 0)
     s_b1 = expectation_value(_operator, _n_mech[0], 1)
@@ -524,35 +532,39 @@ def photon_number(_n_j, _Gamma_opt, _Gamma, printing = True):
 
 
 class parameters:
-    "This class contains all relevant parameters"
+    """This class contains all relevant parameters
     
-    # class variables
-    #T = 300 #temperatur [K]
-    #R0=100e-9 #sphere radius
-    #RHO=2198 #sphere density
-    #EPSR=2.1 #parameter used to obtain the refractive index
-    #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
-    #lambda_tw = 1064e-9 # wavelength [m]   
-    #WK=5.9e6 #=2*pi/lambda=k
-    #waist=41.1e-6 #waist radius
-    #WX=0.67e-6
-    #WY=0.77e-6
-    #XL=1.07e-2 #cavity length 
-    #Finesse=15e4
-    #Press=1e-6 #air pressure in millibars
-    #Pin1=0.17e0 #input power in Watts tweezer beam
-    #detuning=-300e3 #detuning in KHz trap beam
-    #DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
-    #theta0=0.2 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+    Attributes
+    ----------
+    T : float
+        temperature [K]
+    R0 : float
+        sphere radius [m]
+    Finesse : float
+        Finesse
+    Press : float 
+        air pressure [mbar]
+    Pin1 : float 
+        input power of tweezer beam [W]
+    detuning : float 
+        detuning of trap beam [Hz/2pi]
+    theta0 : float
+        angle between tweezer polarization and cavity axis [pi]
+    X0 : float
+        x_0, equilibrium position in x-direction
     
-    # Equilibrium positions 
-    # X0=0.125*lambda ,Y0=waist/sqrt(2)
-    #Y0=0.0e-6
-    #X0=0.125*1.064e-6
-    #X0=0.73*1.064e-6
-    #Z0=0e-6
-    
-    n_opt = 0
+    """
+    n_opt = 0 #: Photon number at room temperature
+    RHO = 2198 #: sphere density [kg/m^3]
+    EPSR = 2.1 #: parameter used to obtain the refractive index
+    lambda_tw = 1064e-9 #: wavelength of tweezer [m]   
+    waist = 41.1e-6 #:  waist radius [m]
+    WX = 0.67e-6 #: W_x [m] ???
+    WY = 0.77e-6 #: W_y [m] ???
+    XL = 1.07e-2 #: cavity length [m]
+    DelFSR = 14.0e9 #:Free spectral range [Hz], you don't use these if you input g_x
+    Y0 = 0 #: y_0, equilibrium position in x-direction
+    Z0 = 0 #: z_0, equilibrium position in x-direction
         
     
     def print_param(self):
@@ -595,7 +607,7 @@ class parameters:
         
         Warning
         ------
-        Detuning has to be given in Hz/2pi
+        Detuning has to be given in 2pi Hz
         """
         
         # mass
@@ -701,7 +713,7 @@ class parameters:
         
         Warning
         -------
-        Detuning has to be given in Hz/2pi
+        Detuning has to be given in 2pi Hz
         """
         Det2pi = self.detuning * 2*np.pi
         g_1D = np.array([self.g[0], self.g[1], self.g[2]])

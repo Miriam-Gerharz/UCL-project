@@ -17,11 +17,12 @@ import tools
 
 k = 1.380649e-23 #J/K
 hbar = 1.054571817e-34 #Js
-hbar = 1.05e-34 #Js
+#hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
     
+param = tools.parameters()
 
 ###########################################################################
 ##################
@@ -29,108 +30,33 @@ Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
 ##################
 
 
-omega = np.arange(0, 500, 0.5e-2)*1e3*2*np.pi # freq for spectrum
+omega = np.arange(0, 400, 0.5e-2)*1e3*2*np.pi # freq for spectrum
 
-#settings = 'Tania'
-settings = 'Delic'
+consider_3D = True
+log_plot = True
+plot_z = False
+       
 
-consider_3D = False
-   
-        
-param = tools.parameters()
+### setiings ###
+param.T = 300 #temperatur [K]
+param.R0= 0.5*143e-9#sphere radius [m]
+param.Finesse = 73e3
+param.Press=1e-7 #air pressure in millibars
+param.Pin1= 400e-3 #input power in Watts tweezer beam
+param.detuning=-300e3 #detuning in KHz trap beam (omega_cav - omega_tw)
+param.theta0= 0.75#angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+param.X0 = 0.23*1064e-9  # 5.32e-8 #0.05 * 1064e-9
 
-### setiings Tania ###
-if settings == 'Tania':
-    param.T = 300 #temperatur [K]
-    param.R0=100e-9 #sphere radius
-    param.RHO=2198 #sphere density
-    param.EPSR=2.1 #parameter used to obtain the refractive index
-    #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
-    param.lambda_tw = 1064e-9 # wavelength [m]   
-    #WK=5.9e6 #=2*pi/lambda=k
-    param.waist=41.1e-6 #waist radius
-    param.WX=0.67e-6
-    param.WY=0.77e-6
-    param.XL=1.07e-2 #cavity length 
-    param.Finesse=15e4
-    param.Press=1e-7 #air pressure in millibars
-    param.Pin1=0.17e0 #input power in Watts tweezer beam
-    param.detuning=-300e3 #detuning in KHz trap beam
-    param.DelFSR=14e9 #1 FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
-    param.theta0=0.05 #angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
-    
-    # Equilibrium positions 
-    # X0=0.125*lambda ,Y0=waist/sqrt(2)
-    param.Y0=0.0e-6
-    #X0=0.125*1.064e-6
-    param.X0=0.35*1.064e-6
-    param.Z0=0e-6
-    
-    
-    filename = 'pic/3D/3D_setup_Tania_det_'+str(round(param.detuning*1e-3))+'kHz' + str(round(param.X0/1064e-9*1e2)) + 'pi'
-
-    #filename = 'pic/3D_setup_Tania_1'
-
-
-
-
-### setiings Delic ###
-if settings == 'Delic':
-    param.T = 300 #temperatur [K]
-    param.R0= 0.5*143e-9#sphere radius [m]
-    param.RHO= 2198 #sphere density [kg m^-3]
-    param.EPSR= 2.1  #parameter used to obtain the refractive index
-#    EPSR= 1.5  #parameter used to obtain the refractive index
-    #              rho=2198.d0,EPSR=1.45d0**2,Epsi0=8.854d-12, &
-    param.lambda_tw = 1064e-9 # wavelength [m]
-    param.waist=41.1e-6  #waist radius of cavity mode
-    param.WX= 0.67e-6# waist size of tweezer [m]
-    param.WY= 0.77e-6 # waist size of tweezer [m]
-    param.XL=  1.07e-2 #cavity length [m]
-    param.Finesse = 15.0e4
-    #Finesse = 15e4
-    param.Press=1e-7 #air pressure in millibars
-    param.Pin1= 400e-3 #input power in Watts tweezer beam
-    #Pin1= 0.17 #input power in Watts tweezer beam
-    param.detuning=-350e3 #detuning in KHz trap beam (omega_cav - omega_tw)
-#    detuning=-380e3 #detuning in KHz trap beam (omega_cav - omega_tw)
-#    detuning=-315e3 #detuning in KHz trap beam (omega_cav - omega_tw)
-    param.DelFSR= 14.0e9 # 1FSR= 14 GHz, free spectral range =separation between cavity modes, you don't use these if you input g_x
-    param.theta0= 0.1#angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
-    
-    # Equilibrium positions 
-    # X0=0.125*lambda ,Y0=waist/sqrt(2)
-    param.Y0=0.0e-6
-    #X0=0.125*1.064e-6
-#    X0=0.25*1064e-9 + 3e-9 #x position [m]
-    param.X0 = 5.32e-8 #0.05 * 1064e-9
-#    X0 = 0.05*1064e-9
-    param.Z0=0e-6
-    
-    filename = 'pic/3D/3D_setup_Delic_det_'+str(round(param.detuning*1e-3))+'kHz_' + str(round(param.X0/1064e-9*1e2)) 
-
+pic = '1'
+#filename = 'pic/3D/3D_setup_Delic_det_'+str(round(param.detuning*1e-3))+'kHz_' + str(round(param.X0/1064e-9*1e2)) + '_' + pic 
+#filename = 'pic/low_pressure'
+filename = 'pic/test'
 ###############################################################
-
-# actually the detuning is given as an angular freq
-param.detuning = param.detuning *2*np.pi
-
 
 
 param.prepare_calc()
+
 param.print_param()
-
-
-
-
-     
-
-########################################################################
-    
-############    
-### MAIN ###
-############
-
-
     
 # optical damping rates
 Gamma_opt = param.opt_damp_rate()
@@ -138,11 +64,11 @@ Gamma_opt = param.opt_damp_rate()
 # photon numbers at equiv
 N = tools.photon_number(param.n_mech, Gamma_opt, param.Gamma)
 
+# the calculated gamma is actually gamma/2
+param.Gamma = param.Gamma*2 
 
-#param2 = (param.omega_mech, param.detuning, param.g, param.Gamma, param.kappa, param.n_opt, param.n_mech)
-#print_parameter(param)
-
-param.Gamma = param.Gamma*2 # the calculated gamma is actually gamma/2
+# actually the detuning is given as an angular freq
+param.detuning = param.detuning *2*np.pi
 
     
 # 1D calculations
@@ -173,7 +99,9 @@ plt.plot(omega/2/np.pi*1e-3, SXX_plus, color = 'orange', label = 'x 1D', linesty
 plt.plot(-omega/2/np.pi*1e-3, SXX_minus, color = 'orange', linestyle = '--')
 plt.plot(omega/2/np.pi*1e-3, SYY_plus, color = 'cyan', label = 'y 1D', linestyle = '--')
 plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'cyan', linestyle = '--')
-#plt.plot(omega/2/np.pi*1e-3, SZZ_plus, color = 'lawngreen', label = 'z 1D', linestyle = '--')
+if plot_z ==True:
+    plt.plot(omega/2/np.pi*1e-3, SZZ_plus, color = 'lawngreen', label = 'z 1D', linestyle = '--')
+    plt.plot(-omega/2/np.pi*1e-3, SZZ_minus, color = 'lawngreen', label = 'z 1D', linestyle = '--')
 #plt.plot(omega/2/np.pi*1e-3, SYY_plus_3D, color = 'blue', label = 'y', linestyle = '-')
 #plt.plot(-omega/2/np.pi*1e-3, SYY_minus_3D, color = 'cyan', linestyle = '-')
 #plt.plot(omega/2/np.pi*1e-3, SZZ_plus_3D, color = 'green', label = 'z', linestyle = '-')
@@ -181,7 +109,8 @@ plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'cyan', linestyle = '--')
 
 plt.xlabel('$\omega/(2\pi)$ [Hz]')
 plt.ylabel('$S_{qq}$ [a.u.]')
-plt.yscale('log')
+if log_plot == True:
+    plt.yscale('log')
 #plt.title('3D calculation for $\phi=$'+str(round(Wkx0/2/np.pi,2))+'$\pi$')
 plt.legend(loc = 'best')
 plt.savefig(filename, bbox_inches='tight')

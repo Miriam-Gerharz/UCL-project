@@ -10,8 +10,8 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 
+# define function to find the min of the 2D array (np.min behaves strange)
 def find_min(array, theta, detuning):
-    #print(len(detuning))
     minimum = array[0][0]
     theta_min = 0
     detuning_min = 0
@@ -25,10 +25,11 @@ def find_min(array, theta, detuning):
 
 
 
-
+# files to merge
 Finesse = np.array([10, 73, 150])*1e3
 runs = np.array([1, 2, 3, 4])
 
+# initialize arrays
 n_x = [[0 for i in range(len(Finesse))] for j in range(len(runs))]
 n_y = [[0 for i in range(len(Finesse))] for j in range(len(runs))]
 n_z = [[0 for i in range(len(Finesse))] for j in range(len(runs))]
@@ -39,12 +40,14 @@ print('run, Finesse, X0, press, n_x, n_y, n_z, n_x+n_y')
 
 for i in range(len(Finesse)):
     for j in range(len(runs)):
+        # initializations
         run = str(runs[j])
         _Finesse = str(Finesse[i])[:-2]
         path_file = 'files/3D/'
         name_file = 'loop_over_theta_and_detuning_with_Finesse_' + _Finesse + '_run_' + run
         filename = path_file + name_file
         
+        # load file
         f = open(filename + '.pckl', 'rb')
         param, omega, theta, detuning, _n_x, _n_y, _n_z = pickle.load(f)
         _n_xy = np.array(_n_x)+np.array(_n_y)
@@ -63,15 +66,7 @@ for i in range(len(Finesse)):
         print(run, _Finesse, ' & ', round(param.X0/1064e-9,3),' & ', round(param.Press*1e6,2),' & ', round(n_x[j][i],2),' & ', round(n_y[j][i],2),' & ', round(n_z[j][i],2),' & ', round(n_xy[j][i],2))
     
     
-# plot
-
-# X_0 = 0.05: runs 2,3
-
-#for i in range(len(Finesse)):
-#    _n_x_1 = []
-#    for j in range(len(runs)):
-#        _n_x = 
-
+# plot the minimal values
 plt.plot(Finesse, n_x[1], linestyle = 'None', marker = 'x', color = 'blue', label = '1e-7, n_x')
 plt.plot(Finesse, n_y[1], linestyle = 'None', marker = 'x', color = 'green', label = '1e-7, n_y')
 plt.plot(Finesse, n_z[1], linestyle = 'None', marker = 'x', color = 'red', label = '1e-7, n_z')

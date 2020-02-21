@@ -16,10 +16,10 @@ from mpl_toolkits.axes_grid1 import AxesGrid
 
 ####################
 pic_number = '1'
-run = '2'
-#Finesse = '73000'
+run = '4'
+Finesse = '73000'
 #Finesse = '10000'
-Finesse = '150000'
+#Finesse = '150000'
 path_file = 'files/3D/'
 name_file = 'loop_over_theta_and_detuning_with_Finesse_' + Finesse + '_run_' + run
 filename = path_file + name_file
@@ -45,7 +45,8 @@ save = True
 f = open(filename + '.pckl', 'rb')
 param, omega, theta, detuning, n_x, n_y, n_z = pickle.load(f)
 n_xy = np.array(n_x)+np.array(n_y)
-    
+   
+# Append all data that is to be plotted 
 n = 0
 N = []
 title = []
@@ -68,13 +69,6 @@ if print_z == True:
     
 print('pressure: ', param.Press)
 print('X0: ', param.X0/param.lambda_tw)
-
-#for i in range(8):
- #   for j in range(5):
-        #print(n_x[i][j], n_y[i][j], n_xy[i][j])
-#i = np.argmin(abs(theta-0.5))
-#j = np.argmin(abs(detuning+150000))
-#print(n_x[i][j], n_y[i][j], n_xy[i][j])
 
 ### PLOT ###
 
@@ -108,25 +102,18 @@ for ax in grid:
     i = i+1
     
 
-# when cbar_mode is 'single', for ax in grid, ax.cax = grid.cbar_axes[0]
-
-#cbar = ax.cax.colorbar(im)
-#ticks = [1e1, 1e2, 1e3, 1e4]
 cbar = grid.cbar_axes[0].colorbar(im)
-#cbar.set_ticks([10,100,1000])
-#cbar.set_ticklabels([10,100,1000])
 cax = grid.cbar_axes[0]
 axis = cax.axis[cax.orientation]
 axis.toggle(ticks=True, ticklabels=True, label=True)
-#axis.label.set_text("n_i")
 
-#cbar.ax.set_yticks(np.arange(0, 1.1, 0.5))
-#cbar.ax.set_yticklabels(['low', 'medium', 'high'])
 if save==False:
     plt.show()
 else:
     plt.savefig('pic/3D/loops/' + name_file + '_pic_' + pic_number, bbox_inches='tight')
     
+    
+# print the minimal values    
 def find_min(array):
     minimum = array[0][0]
     theta_min = 0
