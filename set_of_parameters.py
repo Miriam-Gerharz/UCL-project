@@ -16,8 +16,9 @@ import tools
 #################
 
 k = 1.380649e-23 #J/K
+k = 1.4e-23
 hbar = 1.054571817e-34 #Js
-#hbar = 1.05e-34 #Js
+hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
@@ -30,27 +31,32 @@ param = tools.parameters()
 ##################
 
 
-omega = np.arange(0, 400, 0.5e-2)*1e3*2*np.pi # freq for spectrum
+omega = np.arange(0, 700, 10e-2)*1e3*2*np.pi # freq for spectrum
 
 consider_3D = True
 log_plot = True
-plot_z = False
+plot_z = True
        
 
 ### setiings ###
 param.T = 300 #temperatur [K]
 param.R0= 0.5*143e-9#sphere radius [m]
 param.Finesse = 73e3
-param.Press=1e-7 #air pressure in millibars
-param.Pin1= 400e-3 #input power in Watts tweezer beam
-param.detuning=-300e3 #detuning in KHz trap beam (omega_cav - omega_tw)
-param.theta0= 0.75#angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
-param.X0 = 0.23*1064e-9  # 5.32e-8 #0.05 * 1064e-9
+param.Press=1e-6 #air pressure in millibars
+param.Pin1= 0.4#400e-3 #input power in Watts tweezer beam
+param.detuning=-580e3 #detuning in KHz trap beam (omega_cav - omega_tw)
+param.theta0= 0.47#angle between tweezer polarization and cavity axis. Given as as FRACTION of pi so pi/4  is theta0=0.25
+param.X0 = 0.25*1064e-9  # 5.32e-8 #0.05 * 1064e-9
 
-pic = '1'
-#filename = 'pic/3D/3D_setup_Delic_det_'+str(round(param.detuning*1e-3))+'kHz_' + str(round(param.X0/1064e-9*1e2)) + '_' + pic 
+# slightly adjust w_x and w_y (change default values)
+param.WX = 0.6e-6 #m
+param.WY = 0.705e-6 #m
+
+
+pic = 'Fig1'
+filename = 'pic/3D/3D_setup_Delic_det_'+str(round(param.detuning*1e-3))+'kHz_' + str(round(param.X0/1064e-9*1e2)) + '_' + pic 
 #filename = 'pic/low_pressure'
-filename = 'pic/test'
+#filename = 'pic/test'
 ###############################################################
 
 
@@ -102,6 +108,9 @@ plt.plot(-omega/2/np.pi*1e-3, SYY_minus, color = 'cyan', linestyle = '--')
 if plot_z ==True:
     plt.plot(omega/2/np.pi*1e-3, SZZ_plus, color = 'lawngreen', label = 'z 1D', linestyle = '--')
     plt.plot(-omega/2/np.pi*1e-3, SZZ_minus, color = 'lawngreen', label = 'z 1D', linestyle = '--')
+    plt.plot(omega/2/np.pi*1e-3, SZZ_plus_3D, color = 'green', label = 'z 3D', linestyle = '--')
+    plt.plot(-omega/2/np.pi*1e-3, SZZ_minus_3D, color = 'green', label = 'z 3D', linestyle = '--')
+
 #plt.plot(omega/2/np.pi*1e-3, SYY_plus_3D, color = 'blue', label = 'y', linestyle = '-')
 #plt.plot(-omega/2/np.pi*1e-3, SYY_minus_3D, color = 'cyan', linestyle = '-')
 #plt.plot(omega/2/np.pi*1e-3, SZZ_plus_3D, color = 'green', label = 'z', linestyle = '-')
@@ -111,6 +120,7 @@ plt.xlabel('$\omega/(2\pi)$ [Hz]')
 plt.ylabel('$S_{qq}$ [a.u.]')
 if log_plot == True:
     plt.yscale('log')
+plt.xlim([0, 300])
 #plt.title('3D calculation for $\phi=$'+str(round(Wkx0/2/np.pi,2))+'$\pi$')
 plt.legend(loc = 'best')
 plt.savefig(filename, bbox_inches='tight')

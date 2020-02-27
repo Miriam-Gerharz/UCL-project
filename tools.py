@@ -14,9 +14,9 @@ index j: different operators
 
 
 k = 1.380649e-23 #J/K
-#k = 1.4e-23
+k = 1.4e-23
 hbar = 1.054571817e-34 #Js
-#hbar = 1.05e-34 #Js
+hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
 Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
@@ -269,13 +269,32 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     #GXZ = 1j*eta(_omega, _detuning, -np.pi/2, _kappa)*_g[0]*_g[2] + _g[5]
     GZX = 1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[2]*_g[0] + _g[5]
     
-    
     RXY = 1j * _mu[0] * GXY / _M[0]
     RYX = 1j * _mu[1] * GYX / _M[1]
     RXZ = 1j * _mu[0] * GXZ / _M[0]
     RZX = 1j * _mu[2] * GZX / _M[2]
     RYZ = 1j * _mu[1] * GYZ / _M[1]
     RZY = 1j * _mu[2] * GZY / _M[2]
+    
+# my solution
+    Denum = RXY*(RYX+RYZ*RZX) + RXZ*(RYX*RZY+RZX) + RYZ*RZY -1
+    
+    q1 = (q[0]*(RYZ*RZY-1) - q[1]*(RXY+RXZ*RZY) - q[2]*(RXY*RYZ+RXZ)) / Denum
+    q2 = (-q[0]*(RYX+RYZ*RZX) + q[1]*(RXZ*RZX-1) - q[2]*(+RXZ*RYX+RYZ)) / Denum
+    q3 = (-q[0]*(RYX*RZY+RZX) - q[1]*(RXY*RZX+RZY) + q[2]*(RXY*RYX-1)) / Denum
+    
+    
+# from Tania    
+    CNORM=1-RZX*RXZ-RZY*RYZ-RYX*RXY-RZX*RXY*RYZ-RYX*RXZ*RZY
+
+# ADD 3D BACK-ACTION TERMS
+   # for i in range(8):
+    #CSUM=(1-RZY*RYZ)*q[0]+(RXY+RXZ*RZY)*q[1]+(RXZ+RXY*RYZ)*q[2]
+    #q1 = q[0]+CSUM/CNORM
+    #CSUM=(1-RZX*RXZ)*q[1]+(RYX+RYZ*RZX)*q[0]+(RYZ+RYX*RXZ)*q[2]
+    #q2 = q[1]+CSUM/CNORM
+    #CSUM=(1-RYX*RXY)*q[2]+(RZX+RZY*RYX)*q[0]+(RZY+RZX*RXY)*q[1]
+    #q3 = q[2]+CSUM/CNORM
     
     # set coupling to z mode to 0
     #RXZ = 0
@@ -284,9 +303,9 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     #RZY = 0
     
     
-    q1 = q[0] + RXY * q[1] + RXZ * q[2]
-    q2 = q[1] + RYX * q[0] + RYZ * q[2]
-    q3 = q[2] + RZX * q[0] + RZY * q[1]
+    #q1 = q[0] + RXY * q[1] + RXZ * q[2]
+    #q2 = q[1] + RYX * q[0] + RYZ * q[2]
+    #q3 = q[2] + RZX * q[0] + RZY * q[1]
     
     return [q1, q2, q3]
 
@@ -598,8 +617,8 @@ class parameters:
         print('Gamma: ', self.Gamma)
         print('omega_mech/2pi [kHz]: ', self.omega_mech/(2*np.pi)*1e-3)
         print('photons in cavity: ', self.n_photon)
-        print('GX, GY, GZ', self.g[0]/2/np.pi, self.g[1]/2/np.pi, self.g[2]/2/np.pi)
-        print('GXY, GYZ, GZX', self.g[3]/2/np.pi, self.g[4]/2/np.pi, self.g[5]/2/np.pi)
+        print('GX, GY, GZ [2pi Hz]', self.g[0]/2/np.pi, self.g[1]/2/np.pi, self.g[2]/2/np.pi)
+        print('GXY, GYZ, GZX [2pi Hz]', self.g[3]/2/np.pi, self.g[4]/2/np.pi, self.g[5]/2/np.pi)
         print('***************')
         
     def prepare_calc(self):
@@ -756,7 +775,7 @@ def loop_progress(L_inner, L_outer, inner, outer, start_time):
     current_time_form = str(datetime.timedelta(seconds=round(diff)))
     remaining_time_form = str(datetime.timedelta(seconds=rest_time))
     #print('\n completed: ',  round(progress*100, 2), '%, remaining time: ', str(datetime.timedelta(seconds=rest_time)) )
-    print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress, current_time_form, remaining_time_form))
+    print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress*100, current_time_form, remaining_time_form))
     
     
     
