@@ -1,5 +1,4 @@
 import numpy as np
-import inspect
 import time
 import datetime
 
@@ -10,17 +9,16 @@ index i: function of omega
 index j: different operators
 
 '''
-
-
-
+#############################################
+### CONSTANTS ###
 k = 1.380649e-23 #J/K
 k = 1.4e-23
 hbar = 1.054571817e-34 #Js
 hbar = 1.05e-34 #Js
 c = 3e8 #m/s
 grav = 9.8 #m/s^2
-Epsi0=8.854e-12 # vacuum permitivity [F m^-1]
-
+Epsi0=8.854e-12 # vacuum permittivity [F m^-1]
+#############################################
 
 
 
@@ -159,7 +157,6 @@ def Q_mech(_omega, _omega_j, _Gamma):
     Q2 = np.einsum('i, j-> ji', chi(_omega, _omega_j[1], _Gamma),b2_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[1], _Gamma)),b2_in_d)
     Q3 = np.einsum('i, j-> ji', chi(_omega, _omega_j[2], _Gamma),b3_in) + np.einsum('i,j -> ji', np.conj(chi(-_omega, _omega_j[2], _Gamma)),b3_in_d)
     return [Q1, Q2, Q3]
-    #return [Q1]
 
 ### normalization factor
 def M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g):
@@ -255,7 +252,6 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     """
 
     _M = M(_omega, _omega_j, _detuning, _phi, _Gamma, _kappa, _g)
-    #_Q_mech = Q_mech(_omega, _omega_j, _Gamma)
     _mu = mu(_omega, _omega_j, _Gamma)
     q = q_1D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi)
     
@@ -263,12 +259,11 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     GXY = 1j*eta(_omega, _detuning, 0, _kappa)*_g[0]*_g[1] + _g[3]
     GYX = GXY
     GYZ = -1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[1]*_g[2] + _g[4]
-    #GYZ = 1j*eta(_omega, _detuning, -np.pi/2, _kappa)*_g[1]*_g[2] + _g[4]
     GZY = 1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[2]*_g[1] + _g[4]
     GXZ = -1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[0]*_g[2] + _g[5]
-    #GXZ = 1j*eta(_omega, _detuning, -np.pi/2, _kappa)*_g[0]*_g[2] + _g[5]
     GZX = 1j*eta(_omega, _detuning, np.pi/2, _kappa)*_g[2]*_g[0] + _g[5]
     
+    # prefactors of 3D contributions
     RXY = 1j * _mu[0] * GXY / _M[0]
     RYX = 1j * _mu[1] * GYX / _M[1]
     RXZ = 1j * _mu[0] * GXZ / _M[0]
@@ -276,41 +271,17 @@ def q_3D(_omega, _omega_j, _detuning, _g, _Gamma, _kappa, _phi):
     RYZ = 1j * _mu[1] * GYZ / _M[1]
     RZY = 1j * _mu[2] * GZY / _M[2]
     
-# my solution
+    # 3D modes
     Denum = RXY*(RYX+RYZ*RZX) + RXZ*(RYX*RZY+RZX) + RYZ*RZY -1
     
     q1 = (q[0]*(RYZ*RZY-1) - q[1]*(RXY+RXZ*RZY) - q[2]*(RXY*RYZ+RXZ)) / Denum
     q2 = (-q[0]*(RYX+RYZ*RZX) + q[1]*(RXZ*RZX-1) - q[2]*(+RXZ*RYX+RYZ)) / Denum
     q3 = (-q[0]*(RYX*RZY+RZX) - q[1]*(RXY*RZX+RZY) + q[2]*(RXY*RYX-1)) / Denum
     
-    
-# from Tania    
-    CNORM=1-RZX*RXZ-RZY*RYZ-RYX*RXY-RZX*RXY*RYZ-RYX*RXZ*RZY
-
-# ADD 3D BACK-ACTION TERMS
-   # for i in range(8):
-    #CSUM=(1-RZY*RYZ)*q[0]+(RXY+RXZ*RZY)*q[1]+(RXZ+RXY*RYZ)*q[2]
-    #q1 = q[0]+CSUM/CNORM
-    #CSUM=(1-RZX*RXZ)*q[1]+(RYX+RYZ*RZX)*q[0]+(RYZ+RYX*RXZ)*q[2]
-    #q2 = q[1]+CSUM/CNORM
-    #CSUM=(1-RYX*RXY)*q[2]+(RZX+RZY*RYX)*q[0]+(RZY+RZX*RXY)*q[1]
-    #q3 = q[2]+CSUM/CNORM
-    
-    # set coupling to z mode to 0
-    #RXZ = 0
-    #RZX = 0
-    #RYZ = 0
-    #RZY = 0
-    
-    
-    #q1 = q[0] + RXY * q[1] + RXZ * q[2]
-    #q2 = q[1] + RYX * q[0] + RYZ * q[2]
-    #q3 = q[2] + RZX * q[0] + RZY * q[1]
-    
     return [q1, q2, q3]
 
     
-### helper
+### helpers
 def expectation_value(_operator, _n, _pair):
     """Calculates the expectation value of an operator by analyzing the noises
     
@@ -351,7 +322,6 @@ def spectrum(_operator, _n_opt, _n_mech):
     s_b1 = expectation_value(_operator, _n_mech[0], 1)
     s_b2 = expectation_value(_operator, _n_mech[1], 2)
     s_b3 = expectation_value(_operator, _n_mech[2], 3)
-    #return s_a + s_b1 + s_b2 + s_b3
     return s_a + s_b1 + s_b2 + s_b3
 
 
@@ -375,11 +345,9 @@ def spectrum_output(omega, _i, param, ThreeD):
          PSD(omega)
     """
     
-    # define phases
-    _phi = np.array([0,0,np.pi/2])
+    # define phases and n_opt
+    _phi = np.array([0, 0, np.pi/2])
     n_opt = 0
-    
-#    param.detuning = param.detuning*2*np.pi
     
     # calculate q operator
     if ThreeD == False:
@@ -393,53 +361,8 @@ def spectrum_output(omega, _i, param, ThreeD):
     return _spectrum
 
 
-
-def photon_field(omega, omega_j, detuning, KAPP2, Gamma, g, n_mech, n_opt):
-    """Defined but never used"""
-    kappa = 2*KAPP2
-    Sqrtkapp=np.sqrt(2*KAPP2)
-    phi = np.array([0, 0, np.pi/2])
-    BAX, BAY, BAZ = q_1D(omega, omega_j, detuning, g, Gamma, kappa, phi)
-    
-#    Sqrtgamm=np.sqrt(2*Gamm2)
-
-# now work out the optical trap field =a1
-    CA1= 1j * chi(omega, -detuning, kappa)
-# now work out the photon field a1dagger
-    CA1dagg= -1j * np.conj(chi(-omega, -detuning, kappa))
-    
-    #A1 = np.array([0+1j,0,0,0,0,0,0,0])
-    #A1dagg = np.array([0+1j,0,0,0,0,0,0,0])
-#
-    #for i in range(NTOT):
-    A1=CA1*(g[0]*BAX+g[1]*BAY+g[2]*BAZ)
-    A1dagg=CA1dagg*(g[0]*BAX+g[1]*BAY+g[2]*BAZ)
-         
-# add shot or incoming noise
-# trap beam: add cavity-filtered contribution
-    A1[1]=A1[1]+Sqrtkapp* chi(omega, -detuning, kappa)
-    A1dagg[2]=A1dagg[2]+Sqrtkapp*np.conj(chi(-omega, -detuning, kappa))
-
-# cavity output : add incoming imprecision
-# work out a_out=a_in-Sqrtkapp(a)
-    #for i in range(NTOT):
-    A1=-A1*Sqrtkapp
-    A1dagg=-A1dagg*Sqrtkapp
-      
-    A1[1]=1+A1[1]
-    A1dagg[2]=1+A1dagg[2]
-#####################################################################
-    
-#####################################################################
-    ### ROUTINE HOMODYNE ###
-    
-    XTHET1 = A1 + A1dagg
-    
-    SHOM1 = spectrum(XTHET1, n_opt, n_mech)
-    return SHOM1
-
 def area(_S, _Delta): 
-    """Calculates area under curve
+    """Calculates area under curve by using the trapezoidal rule
 
     Parameters
     ----------
@@ -454,17 +377,13 @@ def area(_S, _Delta):
         Area under the spectrum
     """
 
-#  integrate the position spectrum of bead
-# quick hack - use trapezoidal rule- improve later
     summe=0
-    #Delta=np.abs(omega[1]-omega[0])
     for i in range(len(_S)-1):
         Tem = 0.5*(_S[i]+_S[i+1])
         summe = summe + Tem
     return summe*_Delta / (2*np.pi) #/2pi for normalization
    
     
-
 def n_from_area(_S_plus, _S_minus, _Delta_omega, _N = 0, _name = '', printing = True):
     """Calculates phonon number from area and compares it to the one from the formula
     
@@ -498,9 +417,8 @@ def n_from_area(_S_plus, _S_minus, _Delta_omega, _N = 0, _name = '', printing = 
         print('+:', round(N_X_plus, 2), '(', round((N_X_plus-_N)/(_N+1)*100, 2), '% )')
         print('-:', round(N_X_minus, 2), '(', round((N_X_minus-_N)/(_N)*100, 2), '% )')
         print('summed:', round(N_X, 2), '(', round((N_X-_N)/(_N)*100, 2), '% )')
-    #print('area -', area(SXX_minus, omega))
+    
     return [N_X_plus, N_X_minus, N_X]
-
 
 
 def photon_number(_n_j, _Gamma_opt, _Gamma, printing = True):
@@ -539,52 +457,28 @@ def photon_number(_n_j, _Gamma_opt, _Gamma, printing = True):
     return N
 
 
-
-
-
-
-
-
-
-
-
-
-
 class parameters:
     """This class contains all relevant parameters
-    
-    Attributes
-    ----------
-    T : float
-        temperature [K]
-    R0 : float
-        sphere radius [m]
-    Finesse : float
-        Finesse
-    Press : float 
-        air pressure [mbar]
-    Pin1 : float 
-        input power of tweezer beam [W]
-    detuning : float 
-        detuning of trap beam [Hz/2pi]
-    theta0 : float
-        angle between tweezer polarization and cavity axis [pi]
-    X0 : float
-        x_0, equilibrium position in x-direction
-    
     """
     n_opt = 0 #: Photon number at room temperature
+    T = 300 # room temperature [K]
     RHO = 2198 #: sphere density [kg/m^3]
-    EPSR = 2.1 #: parameter used to obtain the refractive index
+    EPSR = 2.1 #: relative permittivity [F m^-1]
     lambda_tw = 1064e-9 #: wavelength of tweezer [m]   
     waist = 41.1e-6 #:  waist radius [m]
-    WX = 0.67e-6 #: W_x [m] ???
-    WY = 0.77e-6 #: W_y [m] ???
+    WX = 0.67e-6 #: focus of tweezer in x-direction [m]
+    WY = 0.77e-6 #: focus of tweezer in y-direction [m] 
     XL = 1.07e-2 #: cavity length [m]
-    DelFSR = 14.0e9 #:Free spectral range [Hz], you don't use these if you input g_x
+    DelFSR = 14.0e9 #:Free spectral range [Hz], not used if couplings are given
     Y0 = 0 #: y_0, equilibrium position in x-direction
     Z0 = 0 #: z_0, equilibrium position in x-direction
-        
+    R0= 0.5*143e-9 #: sphere radius [m]
+    Finesse = 73e3 #: Finesse
+    Press=1e-6 #: air pressure [mbar]
+    Pin1= 0.4 #: input power tweezer beam [W]
+    detuning=-300e3 #: detuning of trap beam (omega_cav - omega_tw) [2pi kHz]
+    theta0= 0.25 #: angle between tweezer polarization and cavity axis [pi]
+    X0 = 0.23*1064e-9  #: equilibrium position in x [m]
     
     def print_param(self):
         """Prints all the parameters in a nice fashion"""
@@ -636,7 +530,7 @@ class parameters:
         self.Polaris=4.*np.pi*Epsi0*(self.EPSR-1)/(self.EPSR+2)*self.R0**3 # from Tania
         
         # tweezer properties
-        WK= 2*np.pi / self.lambda_tw#=2*pi/lambda=k
+        WK= 2*np.pi / self.lambda_tw #=2*pi/lambda=k
         OMOPT=c*WK
         W2=self.waist**2
         _epsTW=4*self.Pin1/(self.WX*self.WY*np.pi*c*Epsi0)
@@ -649,33 +543,26 @@ class parameters:
         self.epsCAV = np.sqrt(_epsCAV)
         ZR=self.WX*self.WY*WK/2
         self.ZR = ZR
-        #print(OMOPT)
         
         # linewiddth
         coeff=WK*self.Polaris/Epsi0/OMOPT**2/np.pi
         kappnano=4*coeff**2*self.DelFSR*np.cos(WK*self.X0)*np.cos(WK*self.X0)
         self.kappa=kappnano+KAPPin
          
-        # Pressure 1.d-4 mBar => ~ 0.125Hz in old expt
-        # now take usual expression eg Levitated review by Li Geraci etc
-        # 1 bar= 10^ 5 pascal; Press is in mbar = 10^ 2 pascal
-        #gamma=16 * P/(np.pi*v*RHO*R)
-        # v=speed of air=500 /s
+        # damping rate
         GAMMAM=1600*self.Press/np.pi
         GAMMAM=GAMMAM/500/self.RHO/self.R0
-        #Fix of Feb.2016 our GAMMAM => GAMMAM/2!!
-        self.Gamma=GAMMAM/2
+        self.Gamma=GAMMAM/2 # our Gamma is Gammam/2
         
         # mechanical frequencies
         Det2pi=self.detuning*2*np.pi
         kapp2=0.5*self.kappa
-        Wkx0=WK*self.X0 #was commented out
+        Wkx0=WK*self.X0
         OmX=self.Polaris*self.epsTW**2/self.XM/self.WX**2
         OmY=self.Polaris*self.epsTW**2/self.XM/self.WY**2
         OmZ=0.5*self.Polaris*self.epsTW**2/self.XM/ZR**2
         
-        
-        # theta vs thet
+        # theta[rad]
         thet = self.theta0 * np.pi
         
         # photon field
@@ -691,7 +578,6 @@ class parameters:
         OmX=OmX+C1*np.sin(thet)*np.sin(thet)
         OmY=OmY+C1*np.cos(thet)*np.cos(thet)
         OmZ=OmZ-2.*Edip/self.XM*ALPRe*(WK-1/ZR)**2*np.cos(Wkx0)
-        
         
         self.omega_mech = np.array([np.sqrt(OmX), np.sqrt(OmY), np.sqrt(OmZ)])
         
@@ -774,7 +660,6 @@ def loop_progress(L_inner, L_outer, inner, outer, start_time):
         
     current_time_form = str(datetime.timedelta(seconds=round(diff)))
     remaining_time_form = str(datetime.timedelta(seconds=rest_time))
-    #print('\n completed: ',  round(progress*100, 2), '%, remaining time: ', str(datetime.timedelta(seconds=rest_time)) )
     print('\n completed: {0:.3f}%, running: {1:6}s, remaining: {2:6}s \r'.format(progress*100, current_time_form, remaining_time_form))
     
     
